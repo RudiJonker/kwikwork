@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Pressable, Alert } from 'react-native';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import supabase from '../utils/Supabase';
 import styles from '../components/theme/styles';
+import 'react-native-get-random-values';
+import PhoneInput from 'react-native-phone-number-input';
 
 export default function SignupScreen({ navigation }) {
   const [role, setRole] = useState('seeker');
@@ -9,8 +11,29 @@ export default function SignupScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [formattedPhone, setFormattedPhone] = useState('');
+  const phoneInput = useRef(null);
 
   const handleSignup = async () => {
+    // Validate name is not blank
+    if (!name.trim()) {
+      Alert.alert('Error', 'Please enter a valid name');
+      return;
+    }
+
+    // Stronger email validation: requires valid username, domain, and disallows .co as standalone TLD
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.(?!co$)[a-zA-Z]{2,})$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address (e.g., user@domain.com or user@domain.co.za, not user@domain.co)');
+      return;
+    }
+
+    const isValid = phoneInput.current?.isValidNumber(formattedPhone);
+    if (!formattedPhone || !isValid) {
+      Alert.alert('Error', 'Please enter a valid phone number with the correct format (e.g., +27 812345678)');
+      return;
+    }
+
     const { data: { user }, error } = await supabase.auth.signUp({
       email,
       password,
@@ -22,7 +45,7 @@ export default function SignupScreen({ navigation }) {
     }
 
     const { error: dbError } = await supabase.from('users').insert([
-      { id: user.id, name, email, phone, role },
+      { id: user.id, name, email, phone: formattedPhone, role },
     ]);
 
     if (dbError) {
@@ -51,12 +74,17 @@ export default function SignupScreen({ navigation }) {
         value={password}
         onChangeText={setPassword}
       />
-      <TextInput
-        style={styles.input}
+      <PhoneInput
+        ref={phoneInput}
+        defaultCode="ZA"
+        layout="first"
+        onChangeText={(text) => setPhone(text)}
+        onChangeFormattedText={(text) => setFormattedPhone(text)}
+        containerStyle={{ ...styles.input, flexDirection: 'row', alignItems: 'center', height: 40 }}
+        textContainerStyle={{ flex: 1, paddingVertical: 0, height: 35, justifyContent: 'center', backgroundColor: '#fff' }}
+        textInputStyle={{ fontSize: 16, height: '100%', textAlignVertical: 'center', paddingTop: 0, paddingBottom: 0 }}
+        codeTextStyle={{ fontSize: 16, textAlignVertical: 'center' }}
         placeholder="Phone"
-        keyboardType="phone-pad"
-        value={phone}
-        onChangeText={setPhone}
       />
       <View style={localStyles.radioGroup}>
         <Pressable style={localStyles.radioContainer} onPress={() => setRole('seeker')}>

@@ -8,6 +8,12 @@ export default function LoginScreen({ navigation, route }) {
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -40,6 +46,9 @@ export default function LoginScreen({ navigation, route }) {
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Log In</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+        <Text style={styles.link}>Don't have an account yet? Sign Up</Text>
       </TouchableOpacity>
     </View>
   );

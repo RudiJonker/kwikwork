@@ -44,8 +44,7 @@ export default function DashboardScreen({ navigation }) {
         if (!isMounted) return;
         if (error) {
           console.error('Fetch role error:', error.message, 'Code:', error.code, 'Details:', error.details);
-          // Check if error is due to no row found
-          if (error.code === 'PGRST116') { // Row not found
+          if (error.code === 'PGRST116') {
             console.log('No user record found, inserting default role...');
             const { error: insertError } = await supabase
               .from('users')
@@ -53,10 +52,10 @@ export default function DashboardScreen({ navigation }) {
             if (insertError) {
               console.error('Insert error:', insertError.message);
             } else {
-              setRole('seeker'); // Default role on successful insert
+              setRole('seeker');
             }
           } else {
-            if (isMounted) setRole('employer'); // Fallback if not a "not found" error
+            if (isMounted) setRole('employer');
           }
         } else {
           console.log('Role fetched:', data.role);
@@ -100,21 +99,21 @@ export default function DashboardScreen({ navigation }) {
   const seekerCards = [
     { id: 'rank', title: 'Rank', icon: 'crown', color: '#333', onPress: () => {} },
     { id: 'rating', title: 'Rating', icon: 'star', color: '#ff9800', onPress: () => {} },
-    { id: 'unread', title: 'Unread: 2', icon: 'chat', color: '#007bff', onPress: () => {} },
-    { id: 'history', title: 'History', icon: 'history', color: '#6a1b9a', onPress: () => {} },
+    { id: 'weather', title: 'Weather', icon: 'weather-partly-cloudy', color: '#ffeb3b', onPress: () => {} },
+    { id: 'calendar', title: 'Calendar', icon: 'calendar', color: '#4caf50', onPress: () => {} },
     { id: 'bank', title: 'Bank', icon: 'bank', color: '#2196f3', onPress: () => {} },
+    { id: 'help', title: 'Help', icon: 'help-circle', color: '#007bff', onPress: () => {} },
     { id: 'jobs', title: 'Jobs', icon: 'briefcase', color: '#ff4500', onPress: () => {} },
     { id: 'applied', title: 'Applied', icon: 'file-document', color: '#48d22b', onPress: () => {} },
-    { id: '', title: '', icon: '', color: '', onPress: () => {} },
   ];
 
   const employerCards = [
     { id: 'weather', title: 'Weather', icon: 'weather-partly-cloudy', color: '#ffeb3b', onPress: () => {} },
     { id: 'calendar', title: 'Calendar', icon: 'calendar', color: '#4caf50', onPress: () => {} },
-    { id: 'unread', title: 'Unread: 2', icon: 'chat', color: '#007bff', onPress: () => {} },
+    { id: 'alerts', title: 'Alerts', icon: 'alert', color: '#b00020', onPress: () => {} },
     { id: 'history', title: 'History', icon: 'history', color: '#6a1b9a', onPress: () => {} },
     { id: 'salaries', title: 'Salaries', icon: 'cash', color: '#2196f3', onPress: () => {} },
-    { id: '', title: '', icon: '', color: '', onPress: () => {} },
+    { id: 'help', title: 'Help', icon: 'help-circle', color: '#007bff', onPress: () => {} },
     { id: 'jobPosts', title: 'Job Posts', icon: 'briefcase', color: '#ff4500', onPress: () => {} },
     { id: 'applicants', title: 'Applicants', icon: 'account-group', color: '#48d22b', onPress: () => {} },
   ];
@@ -226,24 +225,27 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   flatList: {
-    marginTop: 40,
+    marginTop: 65,
   },
   listContainer: {
     paddingHorizontal: CONTAINER_PADDING,
     paddingBottom: 16,
+    alignItems: 'center', // Center the entire grid
   },
   columnWrapper: {
     justifyContent: 'space-between',
     marginBottom: CARD_MARGIN * 2,
+    width: '88%', // Ensure columns span the container
   },
   cardContainer: {
-    width: CARD_WIDTH,
+    width: CARD_WIDTH * 0.8, // 80% of original card width
+    alignItems: 'center', // Center each card within its container
   },
   card: {
     backgroundColor: '#fff',
     borderRadius: 8,
     height: 90,
-    width: '100%',
+    width: '100%', // Card fills the cardContainer
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#333',

@@ -2,6 +2,17 @@ import { StyleSheet } from 'react-native';
 import theme from './theme';
 
 export default StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-start', // Changed from 'center' to start content from the top
+    alignItems: 'center',
+    paddingVertical: 20, // Reduced vertical padding to move content up
+    paddingHorizontal: 16,
+  },
   container: {
     flex: 1,
     padding: 16,
@@ -13,7 +24,7 @@ export default StyleSheet.create({
     height: 150,
     marginBottom: 20,
     alignSelf: 'center',
-    marginTop: -60,
+    marginTop: 20, // Reduced from 40 to 20 to move logo up
   },
   title: {
     fontSize: theme.sizes.large,
@@ -28,11 +39,12 @@ export default StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    padding: 15,
+    padding: 15, // Restored original padding
     borderRadius: 50,
     backgroundColor: theme.colors.primary,
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: 8, // Restored original margin
+    width: '95%', // Restored original width to match input
   },
   buttonText: {
     color: 'white',

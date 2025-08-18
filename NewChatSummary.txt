@@ -1,0 +1,145 @@
+Summary for Next Chat
+App Name
+
+kwikwork
+
+Purpose
+
+The kwikwork app is designed to provide a dashboard-based interface for job seekers, employers, and administrators, featuring role-specific content (e.g., job rankings for seekers, job posts for employers, and admin stats). It includes a scrolling banner, role-based cards, and bottom navigation tabs, leveraging Supabase for authentication and user data management.
+
+Target Audience
+
+Job seekers, employers, and administrators managing or utilizing job-related services through the platform.
+
+Development Environment
+
+Dependencies:
+
+"@expo/vector-icons": "^14.1.0"
+"@react-navigation/bottom-tabs": "^7.4.6"
+"@react-navigation/native": "^7.1.17"
+"@react-navigation/stack": "^7.4.7"
+"@supabase/supabase-js": "^2.55.0"
+"expo": "~53.0.20"
+"expo-status-bar": "~2.2.3"
+"react": "19.0.0"
+"react-native": "0.79.5"
+"react-native-dotenv": "^3.4.11"
+"react-native-get-random-values": "^1.11.0"
+"react-native-phone-number-input": "^2.1.0"
+"react-native-safe-area-context": "^5.6.0"
+"react-native-screens": "^4.14.1"
+
+
+DevDependencies:
+
+"@babel/core": "^7.20.0"
+
+
+
+Supabase Schema
+
+Tables:
+
+users:
+
+id (uuid, NOT NULL): Primary key, matches auth user UUID.
+user_number (integer, NOT NULL, default: nextval('users_user_number_seq')): Unique user number.
+name (text, NOT NULL): User name.
+email (text, NOT NULL): User email.
+phone (text, NOT NULL): User phone number.
+role (text, NOT NULL, default 'seeker'): User role (e.g., 'seeker', 'employer', 'admin').
+created_at (timestamp with time zone, NULLABLE, default CURRENT_TIMESTAMP): Creation timestamp.
+
+
+
+
+RLS Policies:
+
+"Users can view own data":
+
+Table: public.users
+Behavior: Permissive
+Commands: SELECT, INSERT, UPDATE, DELETE, ALL
+Target Roles: Public (all roles)
+USING: (auth.uid() = id)
+SQL: ALTER POLICY "Users can view own data" ON "public"."users" TO public USING (auth.uid() = id);
+
+
+"Users can insert own data":
+
+Table: public.users
+Behavior: Permissive
+Commands: SELECT, INSERT, UPDATE, DELETE, ALL
+Target Roles: Public (all roles)
+WITH CHECK: (auth.uid() = id)
+SQL: ALTER POLICY "Users can insert own data" ON "public"."users" TO public WITH CHECK (auth.uid() = id);
+
+
+
+
+
+Project Directory
+
+Path: C:\Users\rudij\Documents\Projects\kwikwork
+
+Main GitHub Backup
+
+Repository: https://github.com/RudiJonker/kwikwork.git
+Branch: feature/dashboard-layout
+
+Directory Layout
+
+src
+
+components
+
+theme
+
+styles.js
+theme.js
+
+
+
+
+navigation
+
+AppNavigator.js
+
+
+screens
+
+DashboardScreen.js
+LoginScreen.js
+SignupScreen.js
+WelcomeScreen.js
+
+
+utils
+
+Supabase.js
+
+
+
+
+
+Our Current Project Status
+
+The app now successfully loads the dashboard screen after login, displaying a scrolling banner, role-based cards, and bottom navigation tabs.
+All previous errors (e.g., Supabase initialization, TouchableOpacity, role fetch) have been resolved.
+The cards are populated but may not reflect the correct user role due to a potential missing user record in the users table or incomplete role assignment. An auto-insert mechanism was added to create a default 'seeker' role if no record exists.
+The last successful log showed user 4dbf4168-d4e4-4aab-8187-2e1d2750ee17 (email: ww1@kw.com) fetched, with a role fetch error due to a missing record, now addressed by the auto-insert.
+
+Relevant Information for Next Chat
+
+Key Progress: The dashboard is functional, with the primary issue being card alignment to the user’s role. The auto-insert feature should populate the users table, but manual role adjustment (e.g., via Supabase dashboard) may be needed for accuracy.
+Next Steps: Tweak card display logic to ensure role-specific content matches the fetched or default role. Verify the auto-insert works and adjust roles as needed (e.g., update to 'employer' or 'admin' for ww1@kw.com).
+Debug Tips: Check the console logs for insert success/failure and the resulting role. If cards remain scrambled, inspect the getCards() function logic against the fetched role state.
+Supabase Considerations: Ensure RLS policies allow the auto-insert operation. If blocked, temporarily disable RLS or adjust the policy to allow inserts by authenticated users.
+Environment Notes: The use of Expo and React Native 0.79.5 with React 19.0.0 suggests a modern setup—watch for compatibility with future updates.
+Git Workflow: Continue using the feature/dashboard-layout branch for tweaks, merging to main once stable.
+
+Recommendation
+
+Start the new chat with the latest DashboardScreen.js log output to confirm the auto-insert and role fetch. Share any desired role adjustments for ww1@kw.com (e.g., 'employer' instead of 'seeker').
+Bring up any specific card display issues (e.g., layout, missing data) to prioritize tweaks.

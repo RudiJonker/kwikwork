@@ -25,7 +25,7 @@ export default function LoginScreen({ navigation, route }) {
     }
 
     Alert.alert('Success', 'Logging in');
-    navigation.navigate('Dashboard');
+    navigation.navigate('Tabs'); // Changed from 'Dashboard' to 'Tabs'
   };
 
   return (

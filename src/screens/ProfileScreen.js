@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import supabase from '../utils/Supabase';
 import styles from '../components/theme/styles';
 
 export default function ProfileScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [userData, setUserData] = useState({ 
     name: '', 
     email: '', 
@@ -11,7 +13,7 @@ export default function ProfileScreen({ navigation }) {
     bio: '', 
     business_name: '', 
     profile_pic: '',
-    role: '' // Add role to initial state
+    role: ''
   });
   const [editedName, setEditedName] = useState('');
   const [editedPhone, setEditedPhone] = useState('');
@@ -25,7 +27,7 @@ export default function ProfileScreen({ navigation }) {
       }
       const { data, error: dbError } = await supabase
         .from('users')
-        .select('name, email, phone, bio, business_name, profile_pic, role') // Add role to select
+        .select('name, email, phone, bio, business_name, profile_pic, role')
         .eq('id', user.id)
         .single();
       if (dbError) console.log(dbError.message);
@@ -39,16 +41,27 @@ export default function ProfileScreen({ navigation }) {
   }, [navigation]);
 
   const handleSave = async () => {
+    const updateData = {
+      name: editedName,
+      phone: editedPhone,
+      bio: userData.role === 'seeker' ? userData.bio : null,
+      business_name: userData.role === 'employer' ? userData.business_name : null
+    };
+    console.log('Updating with:', updateData);
     const { error } = await supabase
       .from('users')
-      .update({ name: editedName, phone: editedPhone })
+      .update(updateData)
       .eq('id', (await supabase.auth.getUser()).data.user.id);
-    if (error) console.log(error.message);
-    else console.log('Profile updated');
+    if (error) {
+      console.log('Update error:', error.message);
+      Alert.alert('Error', error.message);
+    } else {
+      console.log('Profile updated');
+      Alert.alert('Success', 'Profile updated');
+    }
   };
 
   const renderContent = () => {
-    // Check if user has employer role and show business name field
     if (userData.role === 'employer') {
       return (
         <TextInput
@@ -59,7 +72,6 @@ export default function ProfileScreen({ navigation }) {
         />
       );
     }
-    // For seekers, show bio field
     return (
       <TextInput
         style={[styles.input, localStyles.bioInput]}
@@ -71,43 +83,53 @@ export default function ProfileScreen({ navigation }) {
         }}
         multiline
         numberOfLines={4}
-        maxLength={250} // Approx 50 words
+        maxLength={250}
       />
     );
   };
 
   return (
-    <View style={styles.container}>
-      <View style={localStyles.profileContainer}>
-        <Image
-          style={localStyles.profilePic}
-          source={userData.profile_pic ? { uri: userData.profile_pic } : require('../../assets/default-avatar.png')}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Name"
-          value={editedName}
-          onChangeText={setEditedName}
-        />
-        <TextInput
-          style={[styles.input, { color: '#888' }]}
-          placeholder="Email"
-          value={userData.email}
-          editable={false}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Phone"
-          value={editedPhone}
-          onChangeText={setEditedPhone}
-          keyboardType="phone-pad"
-        />
-        {renderContent()}
-        <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <SafeAreaProvider>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start', paddingTop: 5, paddingBottom: insets.bottom + 20 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={localStyles.profileContainer}>
+            <Image
+              style={localStyles.profilePic}
+              source={userData.profile_pic ? { uri: userData.profile_pic } : require('../../assets/default-avatar.png')}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Name"
+              value={editedName}
+              onChangeText={setEditedName}
+            />
+            <TextInput
+              style={[styles.input, { color: '#888' }]}
+              placeholder="Email"
+              value={userData.email}
+              editable={false}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Phone"
+              value={editedPhone}
+              onChangeText={setEditedPhone}
+              keyboardType="phone-pad"
+            />
+            {renderContent()}
+            <TouchableOpacity style={styles.button} onPress={handleSave}>
+              <Text style={styles.buttonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaProvider>
   );
 }
 

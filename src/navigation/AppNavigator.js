@@ -6,12 +6,10 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import SignupScreen from '../screens/SignupScreen';
 import LoginScreen from '../screens/LoginScreen';
 import DashboardScreen from '../screens/DashboardScreen';
-
-// Placeholder Components
-const ChatScreen = () => <Text>Chat Screen</Text>;
-const ProfileScreen = () => <Text>Profile Screen</Text>;
-const SettingsScreen = () => <Text>Settings Screen</Text>;
-const ShareScreen = () => <Text>Share Screen</Text>;
+import ProfileScreen from '../screens/ProfileScreen';
+import ChatScreen from '../screens/ChatScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import ShareScreen from '../screens/ShareScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();

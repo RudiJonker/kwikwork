@@ -93,7 +93,7 @@ export default function DashboardScreen({ navigation }) {
   }, [scrollX, textWidth]);
 
   const seekerBannerText = 'You are in the Top 10% of job Seekers with 247 points - keep up the good work! ... 123623 IzziJobs Users worldwide!';
-  const employerBannerText = 'You are managing top jobs with 150 points - keep it up! ... 123623 IzziJobs Users worldwide!';
+  const employerBannerText = 'Reminder - Tiling job starting in 1 hours!';
   const adminBannerText = 'Admin Dashboard - Monitoring 123623 Users ...';
 
   const seekerCards = [
@@ -261,3 +261,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
+

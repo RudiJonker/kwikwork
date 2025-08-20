@@ -8,23 +8,21 @@ export default StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'flex-start', // Changed from 'center' to start content from the top
     alignItems: 'center',
-    paddingVertical: 20, // Reduced vertical padding to move content up
+    paddingVertical: 20,
     paddingHorizontal: 16,
   },
   container: {
     flex: 1,
     padding: 16,
     backgroundColor: theme.colors.background,
-    justifyContent: 'center',
   },
   logo: {
     width: 150,
     height: 150,
     marginBottom: 20,
     alignSelf: 'center',
-    marginTop: 20, // Reduced from 40 to 20 to move logo up
+    marginTop: 20,
   },
   title: {
     fontSize: theme.sizes.large,
@@ -39,12 +37,12 @@ export default StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    padding: 15, // Restored original padding
+    padding: 15,
     borderRadius: 50,
     backgroundColor: theme.colors.primary,
     alignItems: 'center',
-    marginVertical: 8, // Restored original margin
-    width: '95%', // Restored original width to match input
+    marginVertical: 8,
+    width: '95%',
   },
   buttonText: {
     color: 'white',

@@ -1,94 +1,130 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import supabase from '../utils/Supabase';
 import styles from '../components/theme/styles';
-import { useNavigation } from '@react-navigation/native';
 
-export default function ProfileScreen() {
-  const [userData, setUserData] = useState({ id: '', name: '', email: '', phone: '', role: '', bio: '', business_name: '', profile_pic: null });
-  const [loading, setLoading] = useState(true);
-  const navigation = useNavigation();
+export default function ProfileScreen({ navigation }) {
+  const [userData, setUserData] = useState({ 
+    name: '', 
+    email: '', 
+    phone: '', 
+    bio: '', 
+    business_name: '', 
+    profile_pic: '',
+    role: '' // Add role to initial state
+  });
+  const [editedName, setEditedName] = useState('');
+  const [editedPhone, setEditedPhone] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) {
-          console.error('Auth error:', authError?.message || 'No user session');
-          navigation.navigate('Login');
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from('users')
-          .select('id, name, email, phone, role, bio, business_name, profile_pic')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Fetch user data error:', error.message);
-          setUserData({ id: user.id, name: 'Unknown', email: user.email, phone: 'N/A', role: 'seeker', bio: '', business_name: '', profile_pic: null });
-        } else {
-          setUserData(data);
-        }
-      } catch (e) {
-        console.error('Unexpected error:', e.message);
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
         navigation.navigate('Login');
-      } finally {
-        setLoading(false);
+        return;
+      }
+      const { data, error: dbError } = await supabase
+        .from('users')
+        .select('name, email, phone, bio, business_name, profile_pic, role') // Add role to select
+        .eq('id', user.id)
+        .single();
+      if (dbError) console.log(dbError.message);
+      else {
+        setUserData(data || {});
+        setEditedName(data.name || '');
+        setEditedPhone(data.phone || '');
       }
     };
-
     fetchUserData();
   }, [navigation]);
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#48d22b" />
-      </View>
-    );
-  }
+  const handleSave = async () => {
+    const { error } = await supabase
+      .from('users')
+      .update({ name: editedName, phone: editedPhone })
+      .eq('id', (await supabase.auth.getUser()).data.user.id);
+    if (error) console.log(error.message);
+    else console.log('Profile updated');
+  };
 
-  const renderProfileContent = () => {
-    switch (userData.role) {
-      case 'seeker':
-        return (
-          <>
-            <Text style={styles.title}>Seeker Profile</Text>
-            <Text style={styles.label}>Name: {userData.name}</Text>
-            <Text style={styles.label}>Email: {userData.email}</Text>
-            <Text style={styles.label}>Phone: {userData.phone}</Text>
-            <Text style={styles.label}>Bio: {userData.bio || 'Not provided'}</Text>
-          </>
-        );
-      case 'employer':
-        return (
-          <>
-            <Text style={styles.title}>Employer Profile</Text>
-            <Text style={styles.label}>Name: {userData.name}</Text>
-            <Text style={styles.label}>Email: {userData.email}</Text>
-            <Text style={styles.label}>Phone: {userData.phone}</Text>
-            <Text style={styles.label}>Business Name: {userData.business_name || 'Not provided'}</Text>
-          </>
-        );
-      case 'admin':
-        return (
-          <>
-            <Text style={styles.title}>Admin Profile</Text>
-            <Text style={styles.label}>Name: {userData.name}</Text>
-            <Text style={styles.label}>Email: {userData.email}</Text>
-            <Text style={styles.label}>Phone: {userData.phone}</Text>
-          </>
-        );
-      default:
-        return <Text style={styles.title}>Unknown Role</Text>;
+  const renderContent = () => {
+    // Check if user has employer role and show business name field
+    if (userData.role === 'employer') {
+      return (
+        <TextInput
+          style={[styles.input, { height: 40 }]}
+          placeholder="Business Name"
+          value={userData.business_name || ''}
+          onChangeText={(text) => setUserData({ ...userData, business_name: text })}
+        />
+      );
     }
+    // For seekers, show bio field
+    return (
+      <TextInput
+        style={[styles.input, localStyles.bioInput]}
+        placeholder="Bio (Optional Experience Summary)"
+        value={userData.bio || ''}
+        onChangeText={(text) => {
+          const words = text.trim().split(/\s+/).length;
+          if (words <= 50) setUserData({ ...userData, bio: text });
+        }}
+        multiline
+        numberOfLines={4}
+        maxLength={250} // Approx 50 words
+      />
+    );
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.scrollContent, { justifyContent: 'center' }]}>
-      {renderProfileContent()}
-    </ScrollView>
+    <View style={styles.container}>
+      <View style={localStyles.profileContainer}>
+        <Image
+          style={localStyles.profilePic}
+          source={userData.profile_pic ? { uri: userData.profile_pic } : require('../../assets/default-avatar.png')}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          value={editedName}
+          onChangeText={setEditedName}
+        />
+        <TextInput
+          style={[styles.input, { color: '#888' }]}
+          placeholder="Email"
+          value={userData.email}
+          editable={false}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Phone"
+          value={editedPhone}
+          onChangeText={setEditedPhone}
+          keyboardType="phone-pad"
+        />
+        {renderContent()}
+        <TouchableOpacity style={styles.button} onPress={handleSave}>
+          <Text style={styles.buttonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
+
+const localStyles = StyleSheet.create({
+  profileContainer: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  profilePic: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  bioInput: {
+    height: 80,
+    textAlignVertical: 'top',
+    paddingTop: 10,
+  },
+});

@@ -114,7 +114,7 @@ export default function DashboardScreen({ navigation }) {
     { id: 'history', title: 'History', icon: 'history', color: '#6a1b9a', onPress: () => {} },
     { id: 'salaries', title: 'Salaries', icon: 'cash', color: '#2196f3', onPress: () => {} },
     { id: 'help', title: 'Help', icon: 'help-circle', color: '#007bff', onPress: () => {} },
-    { id: 'jobPosts', title: 'Job Posts', icon: 'briefcase', color: '#ff4500', onPress: () => {} },
+    { id: 'jobPosts', title: 'New Job', icon: 'briefcase', color: '#ff4500', onPress: () => navigation.navigate('NewJob') }, // Updated
     { id: 'applicants', title: 'Applicants', icon: 'account-group', color: '#48d22b', onPress: () => {} },
   ];
 
@@ -196,7 +196,7 @@ export default function DashboardScreen({ navigation }) {
       />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -230,22 +230,22 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: CONTAINER_PADDING,
     paddingBottom: 16,
-    alignItems: 'center', // Center the entire grid
+    alignItems: 'center',
   },
   columnWrapper: {
     justifyContent: 'space-between',
     marginBottom: CARD_MARGIN * 2,
-    width: '88%', // Ensure columns span the container
+    width: '88%',
   },
   cardContainer: {
-    width: CARD_WIDTH * 0.8, // 80% of original card width
-    alignItems: 'center', // Center each card within its container
+    width: CARD_WIDTH * 0.8,
+    alignItems: 'center',
   },
   card: {
     backgroundColor: '#fff',
     borderRadius: 8,
     height: 90,
-    width: '100%', // Card fills the cardContainer
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#333',
@@ -261,4 +261,3 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
-

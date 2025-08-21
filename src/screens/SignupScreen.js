@@ -81,7 +81,7 @@ export default function SignupScreen({ navigation }) {
         onChangeText={(text) => setPhone(text)}
         onChangeFormattedText={(text) => setFormattedPhone(text)}
         containerStyle={{ ...styles.input, flexDirection: 'row', alignItems: 'center', height: 40 }}
-        textContainerStyle={{ flex: 1, paddingVertical: 0, height: 35, justifyContent: 'center', backgroundColor: '#fff' }}
+        textContainerStyle={{ flex: 1, paddingVertical: 0, paddingHorizontal:-5,height: 35, justifyContent: 'center', backgroundColor: '#fff' }}
         textInputStyle={{ fontSize: 16, height: '100%', textAlignVertical: 'center', paddingTop: 0, paddingBottom: 0 }}
         codeTextStyle={{ fontSize: 16, textAlignVertical: 'center' }}
         placeholder="Phone"

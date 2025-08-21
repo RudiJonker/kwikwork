@@ -1,35 +1,39 @@
-Summary for Next Chat
+Updated Summary for new Chat
 App Name
 
 kwikwork
 Purpose
 
-The kwikwork app is designed to provide a dashboard-based interface for job seekers, employers, and administrators, featuring role-specific content (e.g., bio for seekers, business name for employers, and admin stats). It includes a profile screen with fetched user data, leveraging Supabase for authentication and user data management, with plans to add profile picture and editing functionality.
-Target Audience
+The kwikwork app is designed to provide a dashboard-based interface for job seekers and employers, featuring role-specific content (e.g., bio for seekers, business name for employers). It includes a profile screen with fetched user data, leveraging Supabase for authentication and user data management, with a profile picture and editing functionality.
 
-Job seekers, employers, and administrators managing or utilizing job-related services through the platform.
-Development Environment
+Target Audience:
+
+Job seekers (enemployed individuals in the community) and employers (could be anyone - home owners/ small businesses).
+
+Development Environment:
 
 Dependencies:
 
-"@expo/vector-icons": "^14.1.0"
-"@react-navigation/bottom-tabs": "^7.4.6"
-"@react-navigation/native": "^7.1.17"
-"@react-navigation/stack": "^7.4.7"
-"@supabase/supabase-js": "^2.55.0"
-"expo": "~53.0.20"
-"expo-status-bar": "~2.2.3"
-"react": "19.0.0"
-"react-native": "0.79.5"
-"react-native-dotenv": "^3.4.11"
-"react-native-get-random-values": "^1.11.0"
-"react-native-phone-number-input": "^2.1.0"
-"react-native-safe-area-context": "^5.6.0"
-"react-native-screens": "^4.14.1"
+  "dependencies": {
+    "@expo/vector-icons": "^14.1.0",
+    "@react-navigation/bottom-tabs": "^7.4.6",
+    "@react-navigation/native": "^7.1.17",
+    "@react-navigation/stack": "^7.4.7",
+    "@supabase/supabase-js": "^2.55.0",
+    "expo": "~53.0.20",
+    "expo-image-picker": "~16.1.4",
+    "expo-status-bar": "~2.2.3",
+    "react": "19.0.0",
+    "react-native": "0.79.5",
+    "react-native-dotenv": "^3.4.11",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-phone-number-input": "^2.1.0",
+    "react-native-safe-area-context": "^5.4.0",
+    "react-native-screens": "~4.11.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
 
-DevDependencies:
-
-"@babel/core": "^7.20.0"
 
 Supabase Schema
 
@@ -71,6 +75,8 @@ Target Roles: Public (all roles)
 WITH CHECK: (auth.uid() = id)
 SQL: ALTER POLICY "Users can insert own data" ON "public"."users" TO public WITH CHECK (auth.uid() = id);
 
+*We need to extract the updated schema detials in the new chat.*
+
 
 
 Project Directory
@@ -80,7 +86,10 @@ Path: C:\Users\rudij\Documents\Projects\kwikwork
 Main GitHub Backup
 
 Repository: https://github.com/RudiJonker/kwikwork.git
-Branch: feature/profile-screen
+
+Branch: keyboard-avoidance (updated from feature/profile-screen to reflect the new working branch)
+
+*We need to start with a new branch in the new chat.*
 
 Directory Layout
 
@@ -123,16 +132,11 @@ Supabase.js
 
 Our Current Project Status
 
-The app successfully loads the profile screen after login, displaying role-specific content (bio for seekers, business name for employers) fetched from Supabase. Previous errors (e.g., ReferenceError: Property 'Platform' doesn't exist, Invariant Violation: ScrollView child layout) have been resolved by simplifying the code, fixing ScrollView styling, and ensuring proper imports. The screen currently shows plain text with centered alignment, styled with a basic card layout using theme/styles.js. The last successful log showed user 4dbf4168-d4e4-4aab-8187-2e1d2750ee17 (email: ww1@kw.com) fetched with role 'seeker', and the data (including bio) is displaying correctly. The profile picture widget and editing functionality are pending.
+The app successfully loads the profile screen after login, displaying role-specific content (bio for seekers, business name for employers) fetched from Supabase, based on the local working backup loaded on August 20, 2025. This backup corrects the bio and business name fields to display according to user roles. Previous errors (e.g., ReferenceError: Property 'Platform' doesn't exist, Invariant Violation: ScrollView child layout, and TypeError: Cannot call a class as a function) arose when adding KeyboardAvoidingView and ScrollView, likely due to version incompatibilities with React 19.0.0, React Native 0.79.5, and React Navigation 7.x. The latest attempt to add keyboard-avoiding functionality failed with the TypeError, prompting a revert to the working backup. The profile screen currently uses a simple View-based layout with centered alignment, styled via theme/styles.js. The last successful log showed user data fetched (e.g., role 'seeker' for ww1@kw.com), with bio displaying correctly. The profile picture widget and editing functionality remain pending, and keyboard-avoiding functionality is the next target. The new keyboard-avoidance branch on GitHub now holds this working state, created to replace the potentially corrupted working-backup-aug20 or feature/profile-screen branches.
 Relevant Information for Next Chat
 
-Key Progress: The profile screen now fetches and displays real user data based on role, with a basic styled layout. The ScrollView issue is fixed, and Supabase integration is working.
-Next Steps: Enhance the styling to match the attached example from the previous project (assumed card-like layout with labeled fields). Add the profile picture widget and editable fields (e.g., phone, bio, business name) with a save button once styling is confirmed.
-Debug Tips: Check console logs for Supabase fetch errors if data is missing. If styling doesn’t match the example, share a description or adjust profileContainer and fieldRow styles. Verify users table data for ww1@kw.com and ee1@kw.com.
-Supabase Considerations: Ensure bio, business_name, and profile_pic columns are populated in the users table. Adjust RLS policies if insert/update operations fail.
-Environment Notes: The downgrade of react-native-safe-area-context to 5.4.0 and react-native-screens to ~4.11.1 resolved compatibility issues with Expo ~53.0.20.
-Git Workflow: Continue using the feature/profile-screen branch for enhancements, merging to main once stable.
+Key Progress: The profile screen now fetches and displays real user data based on role, with the bio and business name fields corrected. A new keyboard-avoidance branch isolates the working backup.
 
-Recommendation
+Environment Notes: See package.json file attached. 
 
-Start the new chat with a screenshot or detailed description of the desired styling from the previous project example to refine the layout. Share the latest ProfileScreen.js log output to confirm data fetch. Bring up any specific styling preferences (e.g., colors, spacing) or issues to prioritize tweaks. Let’s aim to add the profile pic and editing features next.
+We need to properly research compatabililty relating to our current environment before installing any required dependencies in future.

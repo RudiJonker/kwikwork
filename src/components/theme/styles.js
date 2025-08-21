@@ -52,7 +52,7 @@ export default StyleSheet.create({
     width: '95%',
     height: 40,
     margin: 10,
-    padding: 10,
+    padding: 5,
     borderWidth: 1,
     borderColor: theme.colors.borderDefault,
     borderRadius: 4,

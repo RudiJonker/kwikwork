@@ -1,142 +1,133 @@
-Updated Summary for new Chat
-App Name
+New Chat Summary: Kwikwork App Development
+App Description
+Kwikwork is a mobile application designed to connect employers and seekers for short-term job opportunities. The app allows employers to post job listings with details such as job category, location, date/time, duration, and payment, while seekers can browse and apply for these jobs. The focus is on a user-friendly interface with features like category selection, location input with autofill, and a seamless posting/submission process.
+Target Audience
 
-kwikwork
-Purpose
+Employers: Individuals or businesses needing short-term labor (e.g., gardening, cleaning, construction) in local areas.
+Seekers: Workers looking for flexible, quick job opportunities, likely in urban or suburban regions.
+Primarily aimed at users in South Africa (based on context clues like SAST timezone), but expandable globally.
 
-The kwikwork app is designed to provide a dashboard-based interface for job seekers and employers, featuring role-specific content (e.g., bio for seekers, business name for employers). It includes a profile screen with fetched user data, leveraging Supabase for authentication and user data management, with a profile picture and editing functionality.
+App Flow
 
-Target Audience:
+Login/Signup: Users authenticate via Supabase (email/password or phone number).
+Dashboard: After login, users see a dashboard with options:
 
-Job seekers (enemployed individuals in the community) and employers (could be anyone - home owners/ small businesses).
-
-Development Environment:
-
-Dependencies:
-
-  "dependencies": {
-    "@expo/vector-icons": "^14.1.0",
-    "@react-navigation/bottom-tabs": "^7.4.6",
-    "@react-navigation/native": "^7.1.17",
-    "@react-navigation/stack": "^7.4.7",
-    "@supabase/supabase-js": "^2.55.0",
-    "expo": "~53.0.20",
-    "expo-image-picker": "~16.1.4",
-    "expo-status-bar": "~2.2.3",
-    "react": "19.0.0",
-    "react-native": "0.79.5",
-    "react-native-dotenv": "^3.4.11",
-    "react-native-get-random-values": "^1.11.0",
-    "react-native-phone-number-input": "^2.1.0",
-    "react-native-safe-area-context": "^5.4.0",
-    "react-native-screens": "~4.11.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.20.0"
+Employers: "New Job" card to create a listing.
+Seekers: Job listings to browse/apply.
 
 
-Supabase Schema
+New Job Screen (Employer Flow):
 
-Tables:
-
-users:
-
-id (uuid, NOT NULL): Primary key, matches auth user UUID.
-user_number (integer, NOT NULL, default: nextval('users_user_number_seq')): Unique user number.
-name (text, NOT NULL): User name.
-email (text, NOT NULL): User email.
-phone (text, NOT NULL): User phone number.
-role (text, NOT NULL, default 'seeker'): User role (e.g., 'seeker', 'employer', 'admin').
-created_at (timestamp with time zone, NULLABLE, default CURRENT_TIMESTAMP): Creation timestamp.
-bio (text, NULLABLE): Bio for seekers.
-business_name (text, NULLABLE): Business name for employers.
-profile_pic (text, NULLABLE): Storage path for profile picture.
+Select job categories (multi-select dropdown with wrapping cards).
+Enter location (with autofill to prevent spelling errors).
+Set date/time (from/to).
+Input duration and payment.
+Submit the job listing.
 
 
+Job Listings: Seekers view posted jobs with filters (e.g., location, category).
+Profile Management: Users can update profiles (e.g., contact info, availability).
 
-RLS Policies:
+Supabase Schema Details
 
-"Users can view own data":
+Users Table:
 
-Table: public.users
-Behavior: Permissive
-Commands: SELECT, INSERT, UPDATE, DELETE, ALL
-Target Roles: Public (all roles)
-USING: (auth.uid() = id)
-SQL: ALTER POLICY "Users can view own data" ON "public"."users" TO public USING (auth.uid() = id);
+id (UUID, primary key)
+email (text, unique)
+phone (text, unique)
+role (text, e.g., "employer" or "seeker")
+created_at (timestamp)
 
 
-"Users can insert own data":
+Jobs Table:
 
-Table: public.users
-Behavior: Permissive
-Commands: SELECT, INSERT, UPDATE, DELETE, ALL
-Target Roles: Public (all roles)
-WITH CHECK: (auth.uid() = id)
-SQL: ALTER POLICY "Users can insert own data" ON "public"."users" TO public WITH CHECK (auth.uid() = id);
+id (UUID, primary key)
+user_id (UUID, foreign key to Users)
+categories (text[], array of selected categories)
+location (text, e.g., suburb or town)
+date_from (timestamp)
+date_to (timestamp)
+duration (float, e.g., 2.5 hours)
+payment (float, e.g., 300)
+created_at (timestamp)
 
-*We need to extract the updated schema detials in the new chat.*
+
+Applications Table (for seekers applying):
+
+id (UUID, primary key)
+job_id (UUID, foreign key to Jobs)
+seeker_id (UUID, foreign key to Users)
+status (text, e.g., "pending", "accepted")
+created_at (timestamp)
+
+
+Notes: Schema is inferred from app functionality; exact details may need confirmation from your Supabase setup.
+
+GitHub Link
+
+Repository: https://github.com/RudiJonker/kwikwork
+Current Branches:
+
+job-category-field: Last working state with Job Category dropdown and wrapping cards.
+location-field: Recently overwritten with job-category-field as a fresh starting point.
 
 
 
-Project Directory
+Development Environment
 
-Path: C:\Users\rudij\Documents\Projects\kwikwork
+Operating System: Windows (based on file paths like C:\Users\rudij\).
+Node.js: Compatible with dependencies (assumed latest LTS, e.g., 20.x).
+Package.json Dependencies:
+json"dependencies": {
+  "@expo/vector-icons": "^14.1.0",
+  "@react-native-community/checkbox": "^0.5.17",
+  "@react-navigation/bottom-tabs": "^7.4.6",
+  "@react-navigation/native": "^7.1.17",
+  "@react-navigation/stack": "^7.4.7",
+  "@supabase/supabase-js": "^2.55.0",
+  "expo": "~53.0.20",
+  "expo-image-picker": "~16.1.4",
+  "expo-status-bar": "~2.2.3",
+  "react": "19.0.0",
+  "react-native": "0.79.5",
+  "react-native-dotenv": "^3.4.11",
+  "react-native-get-random-values": "^1.11.0",
+  "react-native-phone-number-input": "^2.1.0",
+  "react-native-safe-area-context": "^5.4.0",
+  "react-native-screens": "~4.11.1"
+},
+"devDependencies": {
+  "@babel/core": "^7.20.0"
+}
 
-Main GitHub Backup
+Expo SDK: 53.0.20 (managed workflow).
+React Native: 0.79.5.
+JavaScript Engine: Hermes (default with Expo 53).
+IDE: Likely VS Code (based on TypeScript error format).
 
-Repository: https://github.com/RudiJonker/kwikwork.git
+Current Status
 
-Branch: keyboard-avoidance (updated from feature/profile-screen to reflect the new working branch)
+The app is functional up to the job-category-field branch, with a working New Job screen featuring a category selection dropdown and wrapping cards.
+The location-field branch has been reset to match job-category-field, providing a clean slate.
+Previous attempts to add Geoapify autofill with react-native-fs caused TypeScript errors and runtime issues (e.g., [runtime not ready]: TypeError: Cannot read property 'RNSFileTypeRegular' of null).
 
-*We need to start with a new branch in the new chat.*
+Next Goal
 
-Directory Layout
+Implement the Location field with Geoapify autofill to prevent spelling errors for suburbs or towns.
+Use a different approach (e.g., react-native-webview) to avoid previous issues, leveraging your prior success with Geoapify.
 
-src
+Additional Notes
 
-components
+Geoapify API Key: 61449e72d36d4499bb2467b8e8cdc167 (to be handled securely, e.g., via react-native-dotenv or hardcoded temporarily).
+Timezone: SAST (South Africa Standard Time), current date/time: 11:22 AM SAST, Friday, August 22, 2025.
+User Preference: Concise feedback, no deep code explanations, research compatibility before new dependencies, and ask for file content if needed for edits.
 
-theme
+Action Items for New Chat
 
-styles.js
-theme.js
-
-
-
-
-navigation
-
-AppNavigator.js
-
-
-screens
-
-DashboardScreen.js
-LoginScreen.js
-SignupScreen.js
-WelcomeScreen.js
-ProfileScreen.js
-ChatScreen.js
-SettingsScreen.js
-ShareScreen.js
+Provide code for a WebView-based Location field with Geoapify autocomplete.
+Include test steps and Git commands to commit changes to location-field.
+Request confirmation of Supabase schema or any missing details if needed.
 
 
-utils
-
-Supabase.js
-
-
-
-
-
-Our Current Project Status
-
-The app successfully loads the profile screen after login, displaying role-specific content (bio for seekers, business name for employers) fetched from Supabase, based on the local working backup loaded on August 20, 2025. This backup corrects the bio and business name fields to display according to user roles. Previous errors (e.g., ReferenceError: Property 'Platform' doesn't exist, Invariant Violation: ScrollView child layout, and TypeError: Cannot call a class as a function) arose when adding KeyboardAvoidingView and ScrollView, likely due to version incompatibilities with React 19.0.0, React Native 0.79.5, and React Navigation 7.x. The latest attempt to add keyboard-avoiding functionality failed with the TypeError, prompting a revert to the working backup. The profile screen currently uses a simple View-based layout with centered alignment, styled via theme/styles.js. The last successful log showed user data fetched (e.g., role 'seeker' for ww1@kw.com), with bio displaying correctly. The profile picture widget and editing functionality remain pending, and keyboard-avoiding functionality is the next target. The new keyboard-avoidance branch on GitHub now holds this working state, created to replace the potentially corrupted working-backup-aug20 or feature/profile-screen branches.
-Relevant Information for Next Chat
-
-Key Progress: The profile screen now fetches and displays real user data based on role, with the bio and business name fields corrected. A new keyboard-avoidance branch isolates the working backup.
-
-Environment Notes: See package.json file attached. 
-
-We need to properly research compatabililty relating to our current environment before installing any required dependencies in future.
+Request for Details
+I think I’ve covered everything from our chat, but if there’s anything specific (e.g., exact Supabase table columns, additional app features, or prior Geoapify implementation details), please mention it in the new chat. I’ll ask there if I need clarification!

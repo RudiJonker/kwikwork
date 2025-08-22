@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions, SafeAreaView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '../components/theme/styles';
 
 const jobCategories = [
@@ -20,6 +19,11 @@ const jobCategories = [
 export default function NewJobScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
+  const [location, setLocation] = useState('');
+  const [locationInput, setLocationInput] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const toggleCategory = (category) => {
     if (selectedCategories.includes(category)) {
@@ -43,6 +47,45 @@ export default function NewJobScreen({ navigation }) {
     </TouchableOpacity>
   );
 
+  const fetchSuggestions = async (text) => {
+    if (!text) {
+      setSuggestions([]);
+      console.log('No text input, clearing suggestions');
+      return;
+    }
+    setLoadingSuggestions(true);
+    console.log('Fetching suggestions for:', text);
+    try {
+      const response = await fetch(
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(text)}&type=locality&limit=5&apiKey=61449e72d36d4499bb2467b8e8cdc167`
+      );
+      const data = await response.json();
+      console.log('API Response:', data);
+      if (data.features && data.features.length > 0) {
+        setSuggestions(data.features.map((feature) => feature.properties.formatted));
+      } else {
+        setSuggestions([]);
+        console.log('No features in response');
+      }
+    } catch (error) {
+      console.error('Fetch Suggestions Error:', error.message);
+      setSuggestions([]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleLocationSelect = (selectedLocation) => {
+    setLocation(selectedLocation);
+    setLocationInput(selectedLocation);
+    setSuggestions([]);
+  };
+
+  useEffect(() => {
+    const timeout = setTimeout(() => fetchSuggestions(locationInput), 300);
+    return () => clearTimeout(timeout);
+  }, [locationInput]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 20, paddingHorizontal: 16, paddingTop: 0 }]}>
@@ -61,12 +104,11 @@ export default function NewJobScreen({ navigation }) {
         {/* Modal for Category Selection */}
         <Modal
           animationType="slide"
-          transparent={true}
           visible={modalVisible}
           onRequestClose={() => setModalVisible(false)}
         >
-          <View style={localStyles.modalContainer}>
-            <View style={localStyles.modalContent}>
+          <View style={localStyles.modalOverlay}>
+            <SafeAreaView style={localStyles.modalContent}>
               <Text style={localStyles.modalTitle}>Select Categories</Text>
               <FlatList
                 data={jobCategories}
@@ -74,13 +116,15 @@ export default function NewJobScreen({ navigation }) {
                 keyExtractor={(item) => item}
                 style={localStyles.categoryList}
               />
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.buttonText}>Done</Text>
-              </TouchableOpacity>
-            </View>
+              <View style={localStyles.footer}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </SafeAreaView>
           </View>
         </Modal>
 
@@ -95,12 +139,63 @@ export default function NewJobScreen({ navigation }) {
           </View>
         )}
 
+        {/* Location Field */}
+        <TouchableOpacity
+          style={[styles.input, { paddingHorizontal: 10 }]}
+          onPress={() => setLocationModalVisible(true)}
+        >
+          <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: location ? '#333' : '#888', fontSize: 16 }}>
+            {location || 'Location (Suburb, Town)'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Modal for Location Selection */}
+        <Modal
+          animationType="slide"
+          visible={locationModalVisible}
+          onRequestClose={() => {
+            if (locationInput && !location) setLocation(locationInput);
+            setLocationModalVisible(false);
+          }}
+        >
+          <View style={localStyles.modalOverlay}>
+            <SafeAreaView style={localStyles.modalContent}>
+              <Text style={localStyles.modalTitle}>Select Location</Text>
+              <TextInput
+                style={styles.input}
+                value={locationInput}
+                onChangeText={setLocationInput}
+                placeholder="Enter suburb or town"
+                autoFocus
+              />
+              {loadingSuggestions && <ActivityIndicator size="small" color="#48d22b" />}
+              <FlatList
+                data={suggestions}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={localStyles.suggestionItem} onPress={() => handleLocationSelect(item)}>
+                    <Text style={localStyles.suggestionText}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(item) => item}
+                style={{ flex: 1, maxHeight: 400, marginBottom: 10 }}
+                ListEmptyComponent={<Text style={localStyles.noSuggestionsText}>No suggestions</Text>}
+              />
+              <View style={localStyles.footer}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => {
+                    if (locationInput && !location) setLocation(locationInput);
+                    setLocationModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.buttonText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </SafeAreaView>
+          </View>
+        </Modal>
+
         {/* Other Fields (Static) */}
-        <TextInput
-          style={styles.input}
-          placeholder="Location (Street or Suburb)"
-          editable={false}
-        />
         <View style={styles.input}>
           <Text style={{ color: '#888', fontSize: 16 }}>Date & Time (From)</Text>
         </View>
@@ -129,18 +224,21 @@ export default function NewJobScreen({ navigation }) {
 }
 
 const localStyles = {
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+    backgroundColor: '#fff',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   modalContent: {
+    flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 8,
     padding: 20,
-    width: '80%',
-    maxHeight: '60%',
   },
   modalTitle: {
     fontSize: 18,
@@ -194,5 +292,26 @@ const localStyles = {
   selectedCategoryText: {
     color: '#fff',
     fontSize: 14,
+  },
+  suggestionItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#c5bfc3',
+  },
+  suggestionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  noSuggestionsText: {
+    padding: 10,
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+  },
+  footer: {
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#c5bfc3',
+    paddingBottom: 60, // Added padding to keep it above the safe area bottom
   },
 };

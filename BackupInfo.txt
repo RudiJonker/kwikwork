@@ -1,0 +1,31 @@
+Backup Information:
+
+As of 21 Aug 16:36:
+
+- Signup logic in order
+- Dashboard layout in order
+- Profile page in order (profile pic working)
+- Github branch with latest working backup:
+    PS C:\Users\rudij\Documents\Projects\kwikwork> git add .
+    >> git commit -m "Add NewJobScreen static layout and navigation"
+    >> git push origin dashboard-functionality
+    [dashboard-functionality b1603e9] Add NewJobScreen static layout and navigation
+    7 files changed, 224 insertions(+), 50 deletions(-)
+    create mode 100644 src/screens/NewJobScreen.js
+    Enumerating objects: 26, done.
+    Counting objects: 100% (26/26), done.
+    Delta compression using up to 6 threads
+    Compressing objects: 100% (12/12), done.
+    Writing objects: 100% (14/14), 4.32 KiB | 1.44 MiB/s, done.
+    Total 14 (delta 8), reused 0 (delta 0), pack-reused 0 (from 0)
+    remote: Resolving deltas: 100% (8/8), completed with 8 local objects.
+    To https://github.com/RudiJonker/kwikwork.git
+    1842708..b1603e9  dashboard-functionality -> dashboard-functionality
+
+Busy with:
+Addressing individual Dashboard Card functionality
+
+Status:
+'New Job' Card Layout achieved - no input fields addressed yet.
+
+Next Step: Job Category Dropdown Selection

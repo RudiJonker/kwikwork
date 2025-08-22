@@ -8,9 +8,8 @@ export default StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    alignItems: 'center',
     paddingVertical: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: 16, // Maintain horizontal padding for content
   },
   container: {
     flex: 1,
@@ -42,16 +41,16 @@ export default StyleSheet.create({
     backgroundColor: theme.colors.primary,
     alignItems: 'center',
     marginVertical: 8,
-    width: '95%',
+    width: '95%', // Keep button width as is for design consistency
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
   },
   input: {
-    width: '95%',
+    width: '100%', // Full width to fit the screen
     height: 40,
-    margin: 10,
+    marginVertical: 5, // Vertical margin for spacing
     padding: 5,
     borderWidth: 1,
     borderColor: theme.colors.borderDefault,

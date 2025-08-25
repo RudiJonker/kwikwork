@@ -10,7 +10,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import ChatScreen from '../screens/ChatScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ShareScreen from '../screens/ShareScreen';
-import NewJobScreen from '../screens/NewJobScreen';
+import NewJobScreen from '../screens/NewJobScreen/NewJobScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();

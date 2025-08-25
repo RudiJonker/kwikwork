@@ -1,3 +1,5 @@
+Hey Grok. We are developing a mobile app together and this is a continuation of our earlier chats. Please see the summary below which you prepared for this chat to bring you up to speed:
+
 New Chat Summary: Kwikwork App Development
 App Description
 Kwikwork is a mobile application designed to connect employers and seekers for short-term job opportunities. The app allows employers to post job listings with details such as job category, location, date/time, duration, and payment, while seekers can browse and apply for these jobs. The focus is on a user-friendly interface with features like category selection, location input with autofill, and a seamless posting/submission process.
@@ -21,7 +23,7 @@ New Job Screen (Employer Flow):
 Select job categories (multi-select dropdown with wrapping cards).
 Enter location (with autofill to prevent spelling errors).
 Set date/time (from/to).
-Input duration and payment.
+Input duration (calculated from from/to times) and payment.
 Submit the job listing.
 
 
@@ -33,35 +35,43 @@ Supabase Schema Details
 Users Table:
 
 id (UUID, primary key)
-email (text, unique)
-phone (text, unique)
-role (text, e.g., "employer" or "seeker")
-created_at (timestamp)
+user_number (integer, unique, auto-increment)
+name (text, not null)
+email (text, not null)
+phone (text, not null)
+role (text, not null, default 'seeker')
+created_at (timestamp with time zone, nullable, default CURRENT_TIMESTAMP)
+profile_pic (text, nullable)
+bio (text, nullable)
+business_name (text, nullable)
 
 
 Jobs Table:
 
-id (UUID, primary key)
-user_id (UUID, foreign key to Users)
-categories (text[], array of selected categories)
-location (text, e.g., suburb or town)
-date_from (timestamp)
-date_to (timestamp)
-duration (float, e.g., 2.5 hours)
-payment (float, e.g., 300)
-created_at (timestamp)
+id (UUID, primary key, default uuid_generate_v4())
+employer_id (UUID, foreign key to Users.id, not null)
+category (text, not null)
+location (text, not null)
+date (date, not null)
+time_from (time without time zone, not null)
+time_to (time without time zone, not null)
+duration (numeric, not null)
+payment (numeric, not null)
+currency (text, not null)
+created_at (timestamp with time zone, nullable, default CURRENT_TIMESTAMP)
+status (text, not null, default 'open')
 
 
-Applications Table (for seekers applying):
+Policies:
 
-id (UUID, primary key)
-job_id (UUID, foreign key to Jobs)
-seeker_id (UUID, foreign key to Users)
-status (text, e.g., "pending", "accepted")
-created_at (timestamp)
+Employers can manage own jobs (public, qual: auth.uid() = employer_id)
+Seekers can view open jobs (public, qual: status = 'open')
+Users can insert own data (public, with_check: auth.uid() = id)
+Users can update own data (public, qual: auth.uid() = id, with_check: auth.uid() = id)
+Users can view own data (public, qual: auth.uid() = id)
 
 
-Notes: Schema is inferred from app functionality; exact details may need confirmation from your Supabase setup.
+Notes: Schema updated with exact details from your Supabase setup. No Applications table is present yet, but it can be added later for seeker applications.
 
 GitHub Link
 
@@ -69,7 +79,8 @@ Repository: https://github.com/RudiJonker/kwikwork
 Current Branches:
 
 job-category-field: Last working state with Job Category dropdown and wrapping cards.
-location-field: Recently overwritten with job-category-field as a fresh starting point.
+location-field: Recently reset to match job-category-field as a clean slate.
+date-time-fields: Current working branch with full New Job screen implementation (category, location, date/time, hours, payment fields).
 
 
 
@@ -94,7 +105,9 @@ json"dependencies": {
   "react-native-get-random-values": "^1.11.0",
   "react-native-phone-number-input": "^2.1.0",
   "react-native-safe-area-context": "^5.4.0",
-  "react-native-screens": "~4.11.1"
+  "react-native-screens": "~4.11.1",
+  "@react-native-community/datetimepicker": "^8.0.0", // Added for DateTimePicker
+  "react-native-modal-datetime-picker": "^17.1.0" // Added for modal picker
 },
 "devDependencies": {
   "@babel/core": "^7.20.0"
@@ -107,27 +120,34 @@ IDE: Likely VS Code (based on TypeScript error format).
 
 Current Status
 
-The app is functional up to the job-category-field branch, with a working New Job screen featuring a category selection dropdown and wrapping cards.
-The location-field branch has been reset to match job-category-field, providing a clean slate.
-Previous attempts to add Geoapify autofill with react-native-fs caused TypeScript errors and runtime issues (e.g., [runtime not ready]: TypeError: Cannot read property 'RNSFileTypeRegular' of null).
+The app is fully functional on the date-time-fields branch with a complete New Job screen:
+
+CategoryField: Multi-select dropdown with wrapping cards.
+LocationField: Input with Geoapify autofill (implemented earlier).
+DateTimeFrom/DateTimeTo: Operational with react-native-modal-datetime-picker (fixed TypeError issue).
+HoursField: Calculates duration from fromDate to toDate, displays as "X.X Hours".
+PaymentField: Simplified to a numeric input (currency logic deferred).
+
+
+All fields are left-aligned and full-width after styling updates.
+Previous issues (e.g., Geoapify TypeScript errors, DateTimePicker dismissal) are resolved.
+Memory constraints noted—current session may need to end soon.
 
 Next Goal
 
-Implement the Location field with Geoapify autofill to prevent spelling errors for suburbs or towns.
-Use a different approach (e.g., react-native-webview) to avoid previous issues, leveraging your prior success with Geoapify.
+Add submission logic to save the New Job form data to the Supabase jobs table.
+Optionally, enhance the form with validation or integrate user authentication for employer_id.
 
 Additional Notes
 
-Geoapify API Key: 61449e72d36d4499bb2467b8e8cdc167 (to be handled securely, e.g., via react-native-dotenv or hardcoded temporarily).
-Timezone: SAST (South Africa Standard Time), current date/time: 11:22 AM SAST, Friday, August 22, 2025.
-User Preference: Concise feedback, no deep code explanations, research compatibility before new dependencies, and ask for file content if needed for edits.
+Geoapify API Key: 61449e72d36d4499bb2467b8e8cdc167 (handled via hardcoded temp or react-native-dotenv).
+Timezone: SAST (South Africa Standard Time), current date/time: 09:13 PM SAST, Friday, August 22, 2025.
+User Preference: Concise feedback, no deep code explanations, research compatibility before new dependencies, ask for file content if needed for edits.
+Deferred Feature: Currency symbol based on phone number (to be implemented in a new chat due to memory constraints).
 
 Action Items for New Chat
 
-Provide code for a WebView-based Location field with Geoapify autocomplete.
-Include test steps and Git commands to commit changes to location-field.
-Request confirmation of Supabase schema or any missing details if needed.
-
-
-Request for Details
-I think I’ve covered everything from our chat, but if there’s anything specific (e.g., exact Supabase table columns, additional app features, or prior Geoapify implementation details), please mention it in the new chat. I’ll ask there if I need clarification!
+Provide code for submitting the New Job form to Supabase, including mapping form data to the jobs table columns.
+Include test steps and Git commands to commit changes to date-time-fields.
+Request confirmation of user authentication setup (e.g., how to get auth.uid() for employer_id) if not yet integrated.
+Revisit currency logic for PaymentField using the phone number or another method.

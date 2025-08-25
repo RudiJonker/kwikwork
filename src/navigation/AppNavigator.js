@@ -11,6 +11,7 @@ import ChatScreen from '../screens/ChatScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ShareScreen from '../screens/ShareScreen';
 import NewJobScreen from '../screens/NewJobScreen/NewJobScreen';
+import JobConfirmationScreen from '../screens/JobConfirmationScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -48,6 +49,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="NewJob" component={NewJobScreen} />
+        <Stack.Screen name="JobConfirmation" component={JobConfirmationScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

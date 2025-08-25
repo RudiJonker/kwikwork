@@ -18,6 +18,25 @@ export default function NewJobScreen({ navigation }) {
   const [payment, setPayment] = useState('');
   const [description, setDescription] = useState('');
 
+  const generateReferenceNumber = async () => {
+    let isUnique = false;
+    let refNumber;
+    while (!isUnique) {
+      const randomNum = Math.floor(100000 + Math.random() * 900000); // 6-digit number
+      refNumber = `JOB${randomNum}`;
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('reference_number')
+        .eq('reference_number', refNumber);
+      if (error) {
+        Alert.alert('Error', 'Failed to check reference number');
+        return null;
+      }
+      isUnique = data.length === 0;
+    }
+    return refNumber;
+  };
+
   const handleSubmit = async () => {
     // Validate categories
     if (selectedCategories.length === 0) {
@@ -53,10 +72,17 @@ export default function NewJobScreen({ navigation }) {
       return;
     }
 
-    // Get user ID from Supabase auth
+    // Get user ID
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       Alert.alert('Error', 'User not authenticated. Please log in.');
+      return;
+    }
+
+    // Generate reference number
+    const reference_number = await generateReferenceNumber();
+    if (!reference_number) {
+      Alert.alert('Error', 'Failed to generate reference number');
       return;
     }
 
@@ -64,7 +90,7 @@ export default function NewJobScreen({ navigation }) {
     const diffMs = toDate - fromDate;
     const duration = Math.abs(diffMs / (1000 * 60 * 60));
 
-    // Format date and times for Supabase
+    // Format date and times
     const date = fromDate.toISOString().split('T')[0]; // YYYY-MM-DD
     const time_from = fromDate.toISOString().slice(11, 16); // HH:MM
     const time_to = toDate.toISOString().slice(11, 16); // HH:MM
@@ -72,7 +98,7 @@ export default function NewJobScreen({ navigation }) {
     // Prepare job data
     const jobData = {
       employer_id: user.id,
-      category: selectedCategories.join(','), // Join array into string
+      category: selectedCategories.join(','),
       description,
       location,
       date,
@@ -80,11 +106,12 @@ export default function NewJobScreen({ navigation }) {
       time_to,
       duration,
       payment: Number(payment),
-      currency: 'ZAR', // Default for now
+      currency: 'ZAR',
       status: 'open',
+      reference_number,
     };
 
-    // Insert into Supabase jobs table
+    // Insert into Supabase
     const { error } = await supabase.from('jobs').insert([jobData]);
 
     if (error) {
@@ -92,8 +119,8 @@ export default function NewJobScreen({ navigation }) {
       return;
     }
 
-    Alert.alert('Success', 'Job posted successfully!');
-    navigation.navigate('Tabs'); // Navigate to dashboard after success
+    Alert.alert('Success', `Job posted successfully! Reference: ${reference_number}`);
+    navigation.navigate('JobConfirmation', { jobData });
   };
 
   return (

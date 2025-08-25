@@ -7,11 +7,11 @@ export default function JobDescriptionField({ value, onChange }) {
     <View>
       <TextInput
         style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
-        placeholder="Job Description (min 100 characters)"
+        placeholder="Short description (e.g., Mow lawn)"
         value={value}
         onChangeText={onChange}
         multiline
-        maxLength={500}
+        maxLength={50}
       />
     </View>
   );

@@ -2,19 +2,14 @@ import React from 'react';
 import { View, TextInput } from 'react-native';
 import styles from '../../components/theme/styles';
 
-export default function PaymentField({ onPaymentChange, value }) {
-  const handleChange = (text) => {
-    const numericValue = text.replace(/[^0-9.]/g, ''); // Allow only numbers and decimal
-    onPaymentChange(numericValue);
-  };
-
+export default function PaymentField({ value, onPaymentChange }) {
   return (
     <View>
       <TextInput
         style={styles.input}
+        placeholder="Payment Amount"
         value={value}
-        onChangeText={handleChange}
-        placeholder="Payment (e.g., 300)"
+        onChangeText={onPaymentChange}
         keyboardType="numeric"
       />
     </View>

@@ -11,7 +11,7 @@ export default function JobResultsScreen({ route, navigation }) {
   useEffect(() => {
     const fetchJobs = async () => {
       setLoading(true);
-      const query = supabase
+      let query = supabase
         .from('jobs')
         .select('*')
         .eq('status', 'open')
@@ -20,7 +20,8 @@ export default function JobResultsScreen({ route, navigation }) {
         .order('created_at', { ascending: false });
 
       if (categories.length > 0) {
-        query.ilike('category', `%${categories.join(',')}%`);
+        const categoryFilters = categories.map((cat) => `category.ilike.%${cat}%`).join(',');
+        query = query.or(categoryFilters);
       }
 
       const { data, error } = await query;
@@ -40,7 +41,7 @@ export default function JobResultsScreen({ route, navigation }) {
       style={[localStyles.card, { marginVertical: 8 }]}
       onPress={() => navigation.navigate('JobDetails', { jobData: item })}
     >
-      <Text style={[styles.tagline, { flexShrink: 1 }]}>
+      <Text style={[localStyles.cardText]}>
         {item.category} - {item.payment} ZAR
       </Text>
     </TouchableOpacity>
@@ -71,12 +72,20 @@ const localStyles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 8,
-    padding: 12,
+    padding: 8,
     marginHorizontal: 16,
+    minHeight: 40,
     shadowColor: '#333',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 5,
+    justifyContent: 'center', // Ensure card centers content
+  },
+  cardText: {
+    fontSize: 14, // Match tagline font size
+    color: '#333', // Match tagline color
+    textAlign: 'center', // Center text horizontally
+    lineHeight: 24, // Ensure vertical centering
   },
 });

@@ -103,7 +103,7 @@ export default function DashboardScreen({ navigation }) {
     { id: 'calendar', title: 'Calendar', icon: 'calendar', color: '#4caf50', onPress: () => {} },
     { id: 'bank', title: 'Bank', icon: 'bank', color: '#2196f3', onPress: () => {} },
     { id: 'help', title: 'Help', icon: 'help-circle', color: '#007bff', onPress: () => {} },
-    { id: 'jobs', title: 'Jobs', icon: 'briefcase', color: '#ff4500', onPress: () => {} },
+    { id: 'jobs', title: 'Jobs', icon: 'briefcase', color: '#ff4500', onPress: () => navigation.navigate('JobList') },
     { id: 'applied', title: 'Applied', icon: 'file-document', color: '#48d22b', onPress: () => {} },
   ];
 

@@ -111,10 +111,10 @@ export default function DashboardScreen({ navigation }) {
     { id: 'weather', title: 'Weather', icon: 'weather-partly-cloudy', color: '#ffeb3b', onPress: () => {} },
     { id: 'calendar', title: 'Calendar', icon: 'calendar', color: '#4caf50', onPress: () => {} },
     { id: 'alerts', title: 'Alerts', icon: 'alert', color: '#b00020', onPress: () => {} },
-    { id: 'history', title: 'History', icon: 'history', color: '#6a1b9a', onPress: () => {} },
+    { id: 'myJobs', title: 'My Jobs', icon: 'history', color: '#6a1b9a', onPress: () => navigation.navigate('PostedJobs') },
     { id: 'salaries', title: 'Salaries', icon: 'cash', color: '#2196f3', onPress: () => {} },
     { id: 'help', title: 'Help', icon: 'help-circle', color: '#007bff', onPress: () => {} },
-    { id: 'jobPosts', title: 'New Job', icon: 'briefcase', color: '#ff4500', onPress: () => navigation.navigate('NewJob') }, // Updated
+    { id: 'jobPosts', title: 'New Job', icon: 'briefcase', color: '#ff4500', onPress: () => navigation.navigate('NewJob') },
     { id: 'applicants', title: 'Applicants', icon: 'account-group', color: '#48d22b', onPress: () => {} },
   ];
 

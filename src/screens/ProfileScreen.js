@@ -159,6 +159,12 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) Alert.alert('Error', 'Logout failed');
+    else navigation.navigate('Welcome');
+  };
+
   const renderContent = () => {
     if (userData.role === 'employer') {
       return (
@@ -230,6 +236,9 @@ export default function ProfileScreen({ navigation }) {
             {renderContent()}
             <TouchableOpacity style={styles.button} onPress={handleSave}>
               <Text style={styles.buttonText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={handleLogout}>
+              <Text style={styles.buttonText}>Log Out</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

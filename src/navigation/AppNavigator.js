@@ -15,6 +15,7 @@ import JobConfirmationScreen from '../screens/JobConfirmationScreen';
 import PostedJobsScreen from '../screens/PostedJobsScreen';
 import JobListScreen from '../screens/JobListScreen';
 import JobResultsScreen from '../screens/JobResultsScreen';
+import JobDetailsScreen from '../screens/JobDetailsScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -56,6 +57,7 @@ export default function AppNavigator() {
         <Stack.Screen name="PostedJobs" component={PostedJobsScreen} />
         <Stack.Screen name="JobList" component={JobListScreen} />
         <Stack.Screen name="JobResults" component={JobResultsScreen} />
+        <Stack.Screen name="JobDetails" component={JobDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

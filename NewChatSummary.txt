@@ -2,35 +2,56 @@ Hey Grok. We are developing a mobile app together and this is a continuation of 
 
 New Chat Summary: Kwikwork App Development
 App Description
-Kwikwork is a mobile application designed to connect employers and seekers for short-term job opportunities. The app allows employers to post job listings with details such as job category, location, date/time, duration, and payment, while seekers can browse and apply for these jobs. The focus is on a user-friendly interface with features like category selection, location input with autofill, and a seamless posting/submission process.
+Kwikwork is a mobile application designed to connect employers with seekers for short-term job opportunities in South Africa. Employers can post job listings with details like category, location, date/time, duration, and payment, while seekers can search and view available jobs. The app emphasizes a user-friendly interface with features like multi-select category dropdowns, Geoapify-powered location autofill, and compact job result cards.
 Target Audience
 
-Employers: Individuals or businesses needing short-term labor (e.g., gardening, cleaning, construction) in local areas.
-Seekers: Workers looking for flexible, quick job opportunities, likely in urban or suburban regions.
-Primarily aimed at users in South Africa (based on context clues like SAST timezone), but expandable globally.
+Employers: Individuals or businesses needing short-term labor (e.g., gardening, cleaning, tiling) in local areas.
+Seekers: Workers seeking flexible, short-term job opportunities, particularly in urban/suburban regions.
+Geographic Focus: South Africa (based on SAST timezone and ZAR currency), with potential for global expansion.
 
 App Flow
 
-Login/Signup: Users authenticate via Supabase (email/password or phone number).
-Dashboard: After login, users see a dashboard with options:
+Login/Signup: Users authenticate via Supabase (email/password).
+Dashboard: After login, users see role-based options:
 
-Employers: "New Job" card to create a listing.
-Seekers: Job listings to browse/apply.
+Employers: “New Job” card to post jobs, “Posted Jobs” to view their listings.
+Seekers: “Jobs” card to search for jobs.
+
+Other cards exist and will be dealt with as the app progresses.
 
 
 New Job Screen (Employer Flow):
 
-Select job categories (multi-select dropdown with wrapping cards).
-Enter location (with autofill to prevent spelling errors).
-Set date/time (from/to).
-Input duration (calculated from from/to times) and payment.
-Submit the job listing.
+Multi-select categories (e.g., Gardening, Tiling) with wrapping cards.
+Location input with Geoapify autofill.
+Date/time (from/to), duration (calculated), payment, and description fields.
+Submits to Supabase jobs table with a unique reference number.
 
 
-Job Listings: Seekers view posted jobs with filters (e.g., location, category).
-Profile Management: Users can update profiles (e.g., contact info, availability).
+Job Search (Seeker Flow):
+
+JobListScreen: Input location and categories, navigate to results.
+JobResultsScreen: Displays scrollable job cards (category - payment, e.g., “Gardening - 200 ZAR”).
+Tapping a card navigates to JobDetails (not yet implemented).
+
+
+Profile Management: Users can update profiles (e.g., name, phone, profile picture).
 
 Supabase Schema Details
+To extract the schema and RLS policies, run these commands in your Supabase SQL Editor or a connected client (e.g., psql):
+sql-- Extract table schemas
+SELECT table_name, column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_schema = 'public'
+AND table_name IN ('users', 'jobs')
+ORDER BY table_name, ordinal_position;
+
+-- Extract RLS policies
+SELECT * 
+FROM pg_policies 
+WHERE schemaname = 'public' 
+AND tablename IN ('users', 'jobs');
+Expected Schema (based on previous interactions, please verify with the above commands):
 
 Users Table:
 
@@ -49,49 +70,65 @@ business_name (text, nullable)
 Jobs Table:
 
 id (UUID, primary key, default uuid_generate_v4())
-employer_id (UUID, foreign key to Users.id, not null)
-category (text, not null)
+employer_id (UUID, foreign key to users.id, not null)
+category (text, not null, comma-separated for multi-select)
+description (text, not null)
 location (text, not null)
 date (date, not null)
 time_from (time without time zone, not null)
 time_to (time without time zone, not null)
 duration (numeric, not null)
 payment (numeric, not null)
-currency (text, not null)
-created_at (timestamp with time zone, nullable, default CURRENT_TIMESTAMP)
+currency (text, not null, default 'ZAR')
 status (text, not null, default 'open')
+reference_number (text, unique, not null)
+created_at (timestamp with time zone, nullable, default CURRENT_TIMESTAMP)
 
 
-Policies:
+Applications Table: Not yet created, planned for seeker applications.
 
-Employers can manage own jobs (public, qual: auth.uid() = employer_id)
-Seekers can view open jobs (public, qual: status = 'open')
-Users can insert own data (public, with_check: auth.uid() = id)
-Users can update own data (public, qual: auth.uid() = id, with_check: auth.uid() = id)
-Users can view own data (public, qual: auth.uid() = id)
+Expected RLS Policies (please confirm with the SQL query):
+
+Users:
+
+Insert: auth.uid() = id
+Update: auth.uid() = id
+Select: auth.uid() = id
 
 
-Notes: Schema updated with exact details from your Supabase setup. No Applications table is present yet, but it can be added later for seeker applications.
+Jobs:
 
+Insert: auth.uid() = employer_id
+Update: auth.uid() = employer_id
+Select: (auth.uid() = employer_id OR status = 'open')
+
+
+
+Note: After running the SQL commands, paste the output into the new chat for accuracy.
 GitHub Link
 
 Repository: https://github.com/RudiJonker/kwikwork
-Current Branches:
+Current Branch: job-results-card-center-fix (commit: "Fixed vertical text centering in JobResultsScreen cards")
+Relevant Branches:
 
-job-category-field: Last working state with Job Category dropdown and wrapping cards.
-location-field: Recently reset to match job-category-field as a clean slate.
-date-time-fields: Current working branch with full New Job screen implementation (category, location, date/time, hours, payment fields).
+main: Base branch.
+posted-jobs: Added PostedJobsScreen for employers.
+seeker-jobs-list: Added seeker job search navigation.
+job-results-screen: Split JobListScreen into search and results screens.
+job-results-filter-fix: Fixed category filter to use OR logic.
+job-results-card-center-fix: Fixed card text centering and height.
 
 
 
 Development Environment
 
-Operating System: Windows (based on file paths like C:\Users\rudij\).
-Node.js: Compatible with dependencies (assumed latest LTS, e.g., 20.x).
+Operating System: Windows (based on C:\Users\rudij\ paths).
+Node.js: Compatible with dependencies (assumed LTS, e.g., 20.x or 22.x).
 Package.json Dependencies:
 json"dependencies": {
   "@expo/vector-icons": "^14.1.0",
   "@react-native-community/checkbox": "^0.5.17",
+  "@react-native-community/datetimepicker": "^8.4.4",
   "@react-navigation/bottom-tabs": "^7.4.6",
   "@react-navigation/native": "^7.1.17",
   "@react-navigation/stack": "^7.4.7",
@@ -103,11 +140,11 @@ json"dependencies": {
   "react-native": "0.79.5",
   "react-native-dotenv": "^3.4.11",
   "react-native-get-random-values": "^1.11.0",
+  "react-native-modal-datetime-picker": "^18.0.0",
   "react-native-phone-number-input": "^2.1.0",
   "react-native-safe-area-context": "^5.4.0",
   "react-native-screens": "~4.11.1",
-  "@react-native-community/datetimepicker": "^8.0.0", // Added for DateTimePicker
-  "react-native-modal-datetime-picker": "^17.1.0" // Added for modal picker
+  "react-native-webview": "13.13.5"
 },
 "devDependencies": {
   "@babel/core": "^7.20.0"
@@ -116,38 +153,74 @@ json"dependencies": {
 Expo SDK: 53.0.20 (managed workflow).
 React Native: 0.79.5.
 JavaScript Engine: Hermes (default with Expo 53).
-IDE: Likely VS Code (based on TypeScript error format).
+IDE: Likely VS Code 
 
 Current Status
 
-The app is fully functional on the date-time-fields branch with a complete New Job screen:
+Fully Functional:
 
-CategoryField: Multi-select dropdown with wrapping cards.
-LocationField: Input with Geoapify autofill (implemented earlier).
-DateTimeFrom/DateTimeTo: Operational with react-native-modal-datetime-picker (fixed TypeError issue).
-HoursField: Calculates duration from fromDate to toDate, displays as "X.X Hours".
-PaymentField: Simplified to a numeric input (currency logic deferred).
+Login/Signup: Working via Supabase auth.
+Dashboard: Role-based cards (employers: “New Job”, “Posted Jobs”; seekers: “Jobs”).
+New Job Screen: Employers can post jobs with multi-select categories (CategoryField), Geoapify autofill (LocationField), date/time, duration, payment, and description. Submits to jobs table with unique reference number.
+Job Search (Seeker Flow):
+
+JobListScreen: Search input for location and categories, navigates to JobResultsScreen.
+JobResultsScreen: Displays scrollable, compact job cards (category - payment, e.g., “Gardening - 200 ZAR”), text centered, OR-based category filtering.
 
 
-All fields are left-aligned and full-width after styling updates.
-Previous issues (e.g., Geoapify TypeScript errors, DateTimePicker dismissal) are resolved.
-Memory constraints noted—current session may need to end soon.
 
-Next Goal
 
-Add submission logic to save the New Job form data to the Supabase jobs table.
-Optionally, enhance the form with validation or integrate user authentication for employer_id.
+Recent Fixes:
+
+Resolved GeoapifyAutoComplete import error by using LocationField.
+Fixed navigation error for JobListScreen.
+Split job search into JobListScreen (input) and JobResultsScreen (results).
+Fixed category filter to use OR logic.
+Centered text and reduced card height in JobResultsScreen.
+
+
+
+Next Proposed Steps
+
+Create JobDetailsScreen.js:
+
+Display job details (category, location, date, time, duration, payment, description).
+Include a “Future Ad” placeholder (e.g., a View with text or border).
+Add “Back” button to return to JobResultsScreen.
+Add “Apply” button to submit an application to a new applications table.
+
+
+Create applications Table:
+
+Schema: id (UUID), job_id (UUID, foreign key to jobs.id), seeker_id (UUID, foreign key to users.id), status (text, e.g., “pending”), created_at (timestamp).
+RLS: Seekers can insert/view own applications, employers can view applications for their jobs.
+
+
+Update Supabase Queries:
+
+Add logic in JobDetailsScreen to insert application data and check for duplicates.
+
+
+Git Workflow:
+
+Create a new branch (job-details-screen) from job-results-card-center-fix.
+Commit and push changes after implementing JobDetailsScreen and applications table.
+
+
 
 Additional Notes
 
-Geoapify API Key: 61449e72d36d4499bb2467b8e8cdc167 (handled via hardcoded temp or react-native-dotenv).
-Timezone: SAST (South Africa Standard Time), current date/time: 09:13 PM SAST, Friday, August 22, 2025.
-User Preference: Concise feedback, no deep code explanations, research compatibility before new dependencies, ask for file content if needed for edits.
-Deferred Feature: Currency symbol based on phone number (to be implemented in a new chat due to memory constraints).
+Geoapify API Key: Hardcoded in LocationField.js (61449e72d36d4499bb2467b8e8cdc167). Consider moving to .env using react-native-dotenv for security - later.
+Timezone: SAST, current date/time: 12:21 PM SAST, Wednesday, August 27, 2025.
+User Preference: Concise feedback, no deep code explanations, research dependency compatibility, ask for file content if needed.
+Deferred Feature: Currency symbol based on phone number or location (to be addressed later).
 
 Action Items for New Chat
 
-Provide code for submitting the New Job form to Supabase, including mapping form data to the jobs table columns.
-Include test steps and Git commands to commit changes to date-time-fields.
-Request confirmation of user authentication setup (e.g., how to get auth.uid() for employer_id) if not yet integrated.
-Revisit currency logic for PaymentField using the phone number or another method.
+Provide code for JobDetailsScreen.js with job details, “Future Ad” placeholder, “Back”, and “Apply” buttons.
+Provide SQL for creating the applications table with RLS policies.
+Include test steps and Git commands for the new branch (job-details-screen).
+Request confirmation of styles.js if styling issues arise (e.g., for card text).
+Paste the output of the Supabase schema/RLS queries in the new chat for accuracy.
+
+Please run the Supabase SQL commands and paste the results in the new chat. Let me know if you need help with anything else before continuing with JobDetailsScreen!

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, FlatList, Animated, Dimensions, Text, Easing, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import supabase from '../utils/Supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Dimensions
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -14,10 +15,11 @@ export default function DashboardScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const scrollX = useRef(new Animated.Value(SCREEN_WIDTH)).current;
   const textWidth = SCREEN_WIDTH * 3.5;
+  const [hasUnread, setHasUnread] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    const fetchRole = async () => {
+    const fetchRoleAndApplicants = async () => {
       console.log('Fetching user...');
       if (!supabase || !supabase.auth) {
         console.error('Supabase client not initialized. Check import path or .env file:', { supabase });
@@ -61,6 +63,28 @@ export default function DashboardScreen({ navigation }) {
           console.log('Role fetched:', data.role);
           if (isMounted) setRole(data.role);
         }
+        // Check for unread applicants only for employers
+        if (data && data.role === 'employer') {
+          const { data: jobData, error: jobError } = await supabase
+            .from('jobs')
+            .select('id')
+            .eq('employer_id', user.id);
+          if (jobError) {
+            console.error('Jobs fetch error:', jobError.message);
+          } else {
+            const jobIds = jobData.map(job => job.id);
+            const { data: applicants, error: appError } = await supabase
+              .from('applications')
+              .select('id')
+              .in('job_id', jobIds);
+            if (appError) {
+              console.error('Applicants fetch error:', appError.message);
+            } else {
+              const isRead = await AsyncStorage.getItem('applicantsRead');
+              if (isMounted) setHasUnread(applicants ? applicants.length > 0 && isRead !== 'true' : false);
+            }
+          }
+        }
       } catch (e) {
         console.error('Unexpected error:', e.message);
         if (isMounted) navigation.navigate('Login');
@@ -71,7 +95,7 @@ export default function DashboardScreen({ navigation }) {
         }
       }
     };
-    fetchRole();
+    fetchRoleAndApplicants();
 
     return () => {
       isMounted = false;
@@ -115,7 +139,11 @@ export default function DashboardScreen({ navigation }) {
     { id: 'salaries', title: 'Salaries', icon: 'cash', color: '#2196f3', onPress: () => {} },
     { id: 'help', title: 'Help', icon: 'help-circle', color: '#007bff', onPress: () => {} },
     { id: 'jobPosts', title: 'New Job', icon: 'briefcase', color: '#ff4500', onPress: () => navigation.navigate('NewJob') },
-    { id: 'applicants', title: 'Applicants', icon: 'account-group', color: '#48d22b', onPress: () => {} },
+    { id: 'applicants', title: 'Applicants', icon: 'account-group', color: '#48d22b', onPress: () => {
+      AsyncStorage.setItem('applicantsRead', 'true');
+      setHasUnread(false);
+      navigation.navigate('Applicants');
+    }},
   ];
 
   const adminCards = [
@@ -138,6 +166,9 @@ export default function DashboardScreen({ navigation }) {
       >
         <MaterialCommunityIcons name={item.icon} size={32} color={item.color} />
         <Text style={styles.itemText}>{item.title}</Text>
+        {item.title === 'Applicants' && hasUnread && (
+          <View style={styles.notificationDot} />
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -259,5 +290,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
     marginTop: 4,
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'red',
   },
 });

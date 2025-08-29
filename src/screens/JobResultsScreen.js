@@ -37,15 +37,15 @@ export default function JobResultsScreen({ route, navigation }) {
   }, [location, categories]);
 
   const renderJobCard = ({ item }) => (
-  <TouchableOpacity
-    style={[localStyles.card, { marginVertical: 8 }]}
-    onPress={() => navigation.navigate('JobDetails', { jobData: item })}
-  >
-    <Text style={[localStyles.cardText]}>
-      {item.category} - {item.payment} ZAR
-    </Text>
-  </TouchableOpacity>
-);
+    <TouchableOpacity
+      style={[localStyles.card, { marginVertical: 8 }]}
+      onPress={() => navigation.navigate('JobDetails', { jobData: item })}
+    >
+      <Text style={[localStyles.cardText]}>
+        {item.category} - {item.payment} ZAR
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>

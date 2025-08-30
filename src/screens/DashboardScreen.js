@@ -22,7 +22,7 @@ export default function DashboardScreen({ navigation }) {
     const fetchRoleAndApplicants = async () => {
       console.log('Fetching user...');
       if (!supabase || !supabase.auth) {
-        console.error('Supabase client not initialized. Check import path or .env file:', { supabase });
+        console.error('Supabase client not initialized');
         if (isMounted) {
           setLoading(false);
           navigation.navigate('Login');
@@ -45,49 +45,50 @@ export default function DashboardScreen({ navigation }) {
           .single();
         if (!isMounted) return;
         if (error) {
-          console.error('Fetch role error:', error.message, 'Code:', error.code, 'Details:', error.details);
+          console.error('Fetch role error:', error.message, 'Code:', error.code);
           if (error.code === 'PGRST116') {
-            console.log('No user record found, inserting default role...');
+            console.log('No user record, inserting default role...');
             const { error: insertError } = await supabase
               .from('users')
               .insert({ id: user.id, role: 'seeker', email: user.email, name: 'Default User' });
             if (insertError) {
               console.error('Insert error:', insertError.message);
+              if (isMounted) setRole('seeker');
             } else {
-              setRole('seeker');
+              if (isMounted) setRole('seeker');
             }
           } else {
-            if (isMounted) setRole('employer');
+            console.error('Using fallback role: seeker');
+            if (isMounted) setRole('seeker');
           }
         } else {
           console.log('Role fetched:', data.role);
           if (isMounted) setRole(data.role);
-        }
-        // Check for unread applicants only for employers
-        if (data && data.role === 'employer') {
-          const { data: jobData, error: jobError } = await supabase
-            .from('jobs')
-            .select('id')
-            .eq('employer_id', user.id);
-          if (jobError) {
-            console.error('Jobs fetch error:', jobError.message);
-          } else {
-            const jobIds = jobData.map(job => job.id);
-            const { data: applicants, error: appError } = await supabase
-              .from('applications')
+          if (data.role === 'employer') {
+            const { data: jobData, error: jobError } = await supabase
+              .from('jobs')
               .select('id')
-              .in('job_id', jobIds);
-            if (appError) {
-              console.error('Applicants fetch error:', appError.message);
+              .eq('employer_id', user.id);
+            if (jobError) {
+              console.error('Jobs fetch error:', jobError.message);
             } else {
-              const isRead = await AsyncStorage.getItem('applicantsRead');
-              if (isMounted) setHasUnread(applicants ? applicants.length > 0 && isRead !== 'true' : false);
+              const jobIds = jobData.map(job => job.id);
+              const { data: applicants, error: appError } = await supabase
+                .from('applications')
+                .select('id')
+                .in('job_id', jobIds);
+              if (appError) {
+                console.error('Applicants fetch error:', appError.message);
+              } else {
+                const isRead = await AsyncStorage.getItem('applicantsRead');
+                if (isMounted) setHasUnread(applicants ? applicants.length > 0 && isRead !== 'true' : false);
+              }
             }
           }
         }
       } catch (e) {
         console.error('Unexpected error:', e.message);
-        if (isMounted) navigation.navigate('Login');
+        if (isMounted) setRole('seeker');
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -118,7 +119,7 @@ export default function DashboardScreen({ navigation }) {
 
   const seekerBannerText = 'You are in the Top 10% of job Seekers with 247 points - keep up the good work! ... 123623 IzziJobs Users worldwide!';
   const employerBannerText = 'Reminder - Tiling job starting in 1 hours!';
-  const adminBannerText = 'Admin Dashboard - Monitoring 123623 Users ...';
+  const adminBannerText = 'Admin(em) Dashboard - Monitoring 123623 Users ...';
 
   const seekerCards = [
     { id: 'rank', title: 'Rank', icon: 'crown', color: '#333', onPress: () => {} },
@@ -128,7 +129,7 @@ export default function DashboardScreen({ navigation }) {
     { id: 'bank', title: 'Bank', icon: 'bank', color: '#2196f3', onPress: () => {} },
     { id: 'help', title: 'Help', icon: 'help-circle', color: '#007bff', onPress: () => {} },
     { id: 'jobs', title: 'Jobs', icon: 'briefcase', color: '#ff4500', onPress: () => navigation.navigate('JobList') },
-    { id: 'applied', title: 'Applied', icon: 'file-document', color: '#48d22b', onPress: () => {} },
+    { id: 'applied', title: 'Applied', icon: 'file-document', color: '#48d22b', onPress: () => navigation.navigate('Applied') },
   ];
 
   const employerCards = [

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import supabase from '../utils/Supabase';
 import styles from '../components/theme/styles';
 
@@ -8,20 +8,31 @@ export default function ApplicantsScreen({ navigation }) {
 
   useEffect(() => {
     const fetchApplicants = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        Alert.alert('Error', 'User not authenticated');
+        return;
+      }
       const { data, error } = await supabase
         .from('applications')
-        .select('id, seeker_id, jobs (reference_number)')
+        .select('id, user_number, job_id, email, reference_number, jobs (reference_number)')
         .eq('employer_id', user.id)
         .eq('status', 'pending');
-      if (error) console.log(error);
-      else {
+      if (error) {
+        console.log('Fetch applicants error:', error);
+        Alert.alert('Error', 'Failed to fetch applicants');
+      } else {
+        console.log('Fetched applicants:', data);
         const applicantsWithDetails = await Promise.all(data.map(async (app) => {
-          const { data: userData } = await supabase
+          const { data: userData, error: userError } = await supabase
             .from('users')
             .select('name, profile_pic')
-            .eq('id', app.seeker_id)
+            .eq('user_number', app.user_number)
             .single();
+          if (userError) {
+            console.log('User fetch error:', userError);
+            return { ...app, name: app.email, profile_pic: null };
+          }
           return { ...app, ...userData };
         }));
         setApplicants(applicantsWithDetails);
@@ -35,8 +46,9 @@ export default function ApplicantsScreen({ navigation }) {
       .from('applications')
       .update({ status: 'approved' })
       .eq('id', applicationId);
-    if (approveError) Alert.alert('Error', 'Approve failed');
-    else {
+    if (approveError) {
+      Alert.alert('Error', 'Approve failed');
+    } else {
       const { error: rejectError } = await supabase
         .from('applications')
         .update({ status: 'rejected' })
@@ -46,8 +58,11 @@ export default function ApplicantsScreen({ navigation }) {
         .from('jobs')
         .update({ status: 'filled' })
         .eq('id', jobId);
-      if (rejectError || jobError) Alert.alert('Error', 'Update failed');
-      else setApplicants(applicants.filter(a => a.id !== applicationId));
+      if (rejectError || jobError) {
+        Alert.alert('Error', 'Update failed');
+      } else {
+        setApplicants(applicants.filter(a => a.id !== applicationId));
+      }
     }
   };
 
@@ -56,25 +71,40 @@ export default function ApplicantsScreen({ navigation }) {
       .from('applications')
       .update({ status: 'rejected' })
       .eq('id', applicationId);
-    if (error) Alert.alert('Error', 'Reject failed');
-    else setApplicants(applicants.filter(a => a.id !== applicationId));
+    if (error) {
+      Alert.alert('Error', 'Reject failed');
+    } else {
+      setApplicants(applicants.filter(a => a.id !== applicationId));
+    }
   };
 
   const renderApplicant = ({ item }) => {
-    const profileUrl = item.profile_pic ? `https://xvkzynoobfzwjyndglxh.supabase.co/storage/v1/object/public/profile-pics/${item.profile_pic}` : null;
+    const profileUrl = item.profile_pic ? `https://xvkzynoobfzwjyndglxh.supabase.co/storage/v1/object/public/profile-pics/${item.profile_pic}` : 'https://via.placeholder.com/50';
     return (
-      <TouchableOpacity style={localStyles.card} onPress={() => navigation.navigate('SeekerDetails', { seekerId: item.seeker_id })}>
+      <TouchableOpacity
+        style={localStyles.card}
+        onPress={() => navigation.navigate('SeekerDetails', { userNumber: item.user_number })}
+      >
         <View style={localStyles.cardContent}>
-          <Image source={{ uri: profileUrl || 'https://via.placeholder.com/50' }} style={localStyles.profilePic} />
+          <Image source={{ uri: profileUrl }} style={localStyles.profilePic} />
           <View style={localStyles.textContainer}>
             <Text style={localStyles.name}>{item.name}</Text>
             <Text style={localStyles.rating}>★★★</Text>
+            <Text style={localStyles.detail}>Email: {item.email}</Text>
+            <Text style={localStyles.detail}>Ref: {item.reference_number}</Text>
+            <Text style={localStyles.detail}>Job: {item.jobs.reference_number}</Text>
           </View>
           <View style={localStyles.buttons}>
-            <TouchableOpacity style={[localStyles.button, { backgroundColor: '#4caf50' }]} onPress={() => handleApprove(item.id, item.jobs.id)}>
+            <TouchableOpacity
+              style={[localStyles.button, { backgroundColor: '#4caf50' }]}
+              onPress={() => handleApprove(item.id, item.job_id)}
+            >
               <Text style={localStyles.buttonText}>Approve</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[localStyles.button, { backgroundColor: '#f44336' }]} onPress={() => handleReject(item.id)}>
+            <TouchableOpacity
+              style={[localStyles.button, { backgroundColor: '#f44336' }]}
+              onPress={() => handleReject(item.id)}
+            >
               <Text style={localStyles.buttonText}>Reject</Text>
             </TouchableOpacity>
           </View>
@@ -85,11 +115,15 @@ export default function ApplicantsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={applicants}
-        renderItem={renderApplicant}
-        keyExtractor={item => item.id}
-      />
+      {applicants.length === 0 ? (
+        <Text style={styles.tagline}>No pending applicants</Text>
+      ) : (
+        <FlatList
+          data={applicants}
+          renderItem={renderApplicant}
+          keyExtractor={item => item.id.toString()}
+        />
+      )}
     </View>
   );
 }
@@ -97,11 +131,12 @@ export default function ApplicantsScreen({ navigation }) {
 const localStyles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    padding: 10,
-    marginVertical: 8,
+    padding: 15,
+    marginVertical: 10,
+    marginHorizontal: 20,
     backgroundColor: '#fff',
-    borderRadius: 8,
-    elevation: 2,
+    borderRadius: 10,
+    elevation: 3,
   },
   cardContent: {
     flexDirection: 'row',
@@ -109,32 +144,42 @@ const localStyles = StyleSheet.create({
     flex: 1,
   },
   profilePic: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 10,
+    width: 60, // Slightly larger
+    height: 60,
+    borderRadius: 30,
+    marginRight: 15,
   },
   textContainer: {
     flex: 1,
   },
   name: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#333',
+    fontWeight: 'bold',
   },
   rating: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#888',
+    marginVertical: 5,
+  },
+  detail: {
+    fontSize: 14,
+    color: '#666',
   },
   buttons: {
-    flexDirection: 'row',
-    gap: 5,
+    flexDirection: 'column',
+    gap: 8,
+    alignItems: 'center',
   },
   button: {
-    padding: 5,
-    borderRadius: 5,
+    padding: 8,
+    borderRadius: 6,
+    width: 80,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

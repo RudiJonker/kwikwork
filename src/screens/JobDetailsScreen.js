@@ -7,46 +7,55 @@ export default function JobDetailsScreen({ navigation, route }) {
   const { jobData } = route.params;
 
   const handleApply = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data: existing, error: checkError } = await supabase
-      .from('applications')
-      .select('id')
-      .eq('user_number', (await supabase.from('users').select('user_number').eq('id', user.id).single()).data.user_number)
-      .eq('job_id', jobData.id);
-    if (checkError) {
-      Alert.alert('Error', 'Check failed');
-      return;
-    }
-    if (existing.length > 0) {
-      Alert.alert('Notice', 'You have already applied for this job');
-      return;
-    }
-    Alert.alert(
-      'Confirm Application',
-      'Are you sure you want to apply for this job?',
-      [
-        { text: 'Back', style: 'cancel' },
-        { text: 'Confirm', onPress: async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: existing, error: checkError } = await supabase
+    .from('applications')
+    .select('id')
+    .eq('user_number', (await supabase.from('users').select('user_number').eq('id', user.id).single()).data.user_number)
+    .eq('job_id', jobData.id);
+  if (checkError) {
+    Alert.alert('Error', 'Check failed');
+    return;
+  }
+  if (existing.length > 0) {
+    Alert.alert('Notice', 'You have already applied for this job');
+    return;
+  }
+  Alert.alert(
+    'Confirm Application',
+    'Are you sure you want to apply for this job?',
+    [
+      { text: 'Back', style: 'cancel' },
+      {
+        text: 'Confirm',
+        onPress: async () => {
           const { data: userData } = await supabase
             .from('users')
             .select('email, user_number')
             .eq('id', user.id)
+            .single();
+          const { data: jobDataFull } = await supabase
+            .from('jobs')
+            .select('employer_id')
+            .eq('id', jobData.id)
             .single();
           const { error } = await supabase
             .from('applications')
             .insert({
               job_id: jobData.id,
               user_number: userData.user_number,
+              employer_id: jobDataFull.employer_id,
               email: userData.email,
               reference_number: jobData.reference_number,
-              status: 'pending'
+              status: 'pending',
             });
           if (error) Alert.alert('Error', 'Application failed');
           else Alert.alert('Success', 'Applied successfully');
-        }}
-      ]
-    );
-  };
+        },
+      },
+    ]
+  );
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>

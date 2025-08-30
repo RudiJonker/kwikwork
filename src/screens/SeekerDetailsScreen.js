@@ -4,7 +4,7 @@ import supabase from '../utils/Supabase';
 import styles from '../components/theme/styles';
 
 export default function SeekerDetailsScreen({ route }) {
-  const { seekerId } = route.params;
+  const { userNumber } = route.params;
   const [seekerData, setSeekerData] = useState({ name: '', bio: '', profile_pic: '' });
 
   useEffect(() => {
@@ -12,10 +12,11 @@ export default function SeekerDetailsScreen({ route }) {
       const { data, error } = await supabase
         .from('users')
         .select('name, bio, profile_pic')
-        .eq('id', seekerId)
+        .eq('user_number', userNumber)
         .single();
-      if (error) console.log(error);
-      else {
+      if (error) {
+        console.log(error);
+      } else {
         setSeekerData(data);
         if (data.profile_pic && !data.profile_pic.startsWith('http')) {
           const { data: signedData } = await supabase.storage
@@ -26,7 +27,7 @@ export default function SeekerDetailsScreen({ route }) {
       }
     };
     fetchSeekerData();
-  }, [seekerId]);
+  }, [userNumber]);
 
   const profileUrl = seekerData.profile_pic || 'https://via.placeholder.com/100';
 

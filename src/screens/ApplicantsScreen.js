@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import supabase from '../utils/Supabase';
 import styles from '../components/theme/styles';
 
@@ -23,19 +23,7 @@ export default function ApplicantsScreen({ navigation }) {
         Alert.alert('Error', 'Failed to fetch applicants');
       } else {
         console.log('Fetched applicants:', data);
-        const applicantsWithDetails = await Promise.all(data.map(async (app) => {
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('name, profile_pic')
-            .eq('user_number', app.user_number)
-            .single();
-          if (userError) {
-            console.log('User fetch error:', userError);
-            return { ...app, name: app.email, profile_pic: null };
-          }
-          return { ...app, ...userData };
-        }));
-        setApplicants(applicantsWithDetails);
+        setApplicants(data);
       }
     };
     fetchApplicants();
@@ -78,40 +66,35 @@ export default function ApplicantsScreen({ navigation }) {
     }
   };
 
-  const renderApplicant = ({ item }) => {
-    const profileUrl = item.profile_pic ? `https://xvkzynoobfzwjyndglxh.supabase.co/storage/v1/object/public/profile-pics/${item.profile_pic}` : 'https://via.placeholder.com/50';
-    return (
-      <TouchableOpacity
-        style={localStyles.card}
-        onPress={() => navigation.navigate('SeekerDetails', { userNumber: item.user_number })}
-      >
-        <View style={localStyles.cardContent}>
-          <Image source={{ uri: profileUrl }} style={localStyles.profilePic} />
-          <View style={localStyles.textContainer}>
-            <Text style={localStyles.name}>{item.name}</Text>
-            <Text style={localStyles.rating}>★★★</Text>
-            <Text style={localStyles.detail}>Email: {item.email}</Text>
-            <Text style={localStyles.detail}>Ref: {item.reference_number}</Text>
-            <Text style={localStyles.detail}>Job: {item.jobs.reference_number}</Text>
-          </View>
-          <View style={localStyles.buttons}>
-            <TouchableOpacity
-              style={[localStyles.button, { backgroundColor: '#4caf50' }]}
-              onPress={() => handleApprove(item.id, item.job_id)}
-            >
-              <Text style={localStyles.buttonText}>Approve</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[localStyles.button, { backgroundColor: '#f44336' }]}
-              onPress={() => handleReject(item.id)}
-            >
-              <Text style={localStyles.buttonText}>Reject</Text>
-            </TouchableOpacity>
-          </View>
+  const renderApplicant = ({ item }) => (
+    <TouchableOpacity
+      style={localStyles.card}
+      onPress={() => navigation.navigate('SeekerDetails', { userNumber: item.user_number })}
+    >
+      <View style={localStyles.cardContent}>
+        <View style={localStyles.textContainer}>
+          <Text style={localStyles.name}>{item.email}</Text>
+          <Text style={localStyles.rating}>★★★</Text>
+          <Text style={localStyles.detail}>Ref: {item.reference_number}</Text>
+          <Text style={localStyles.detail}>Job: {item.jobs.reference_number}</Text>
         </View>
-      </TouchableOpacity>
-    );
-  };
+        <View style={localStyles.buttons}>
+          <TouchableOpacity
+            style={[localStyles.button, { backgroundColor: '#4caf50' }]}
+            onPress={() => handleApprove(item.id, item.job_id)}
+          >
+            <Text style={localStyles.buttonText}>Approve</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[localStyles.button, { backgroundColor: '#f44336' }]}
+            onPress={() => handleReject(item.id)}
+          >
+            <Text style={localStyles.buttonText}>Reject</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
@@ -130,7 +113,6 @@ export default function ApplicantsScreen({ navigation }) {
 
 const localStyles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
     padding: 15,
     marginVertical: 10,
     marginHorizontal: 20,
@@ -139,42 +121,39 @@ const localStyles = StyleSheet.create({
     elevation: 3,
   },
   cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  profilePic: {
-    width: 60, // Slightly larger
-    height: 60,
-    borderRadius: 30,
-    marginRight: 15,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   textContainer: {
-    flex: 1,
+    alignItems: 'flex-start',
+    marginBottom: 10,
   },
   name: {
     fontSize: 18,
     color: '#333',
     fontWeight: 'bold',
+    textAlign: 'left',
   },
   rating: {
     fontSize: 16,
     color: '#888',
     marginVertical: 5,
+    textAlign: 'left',
   },
   detail: {
     fontSize: 14,
     color: '#666',
+    textAlign: 'left',
   },
   buttons: {
-    flexDirection: 'column',
-    gap: 8,
+    flexDirection: 'row',
+    gap: 10,
     alignItems: 'center',
   },
   button: {
     padding: 8,
     borderRadius: 6,
-    width: 80,
+    width: 100, // Increased from 80 to 100
     alignItems: 'center',
   },
   buttonText: {
